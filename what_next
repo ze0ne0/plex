@@ -1,0 +1,36 @@
+track memroy component initialization
+
+./common/core/memory_subsystem/parametric_dram_directory_msi/cache_cntlr.cc
+./common/core/memory_subsystem/parametric_dram_directory_msi/cache_cntlr.h
+
+
+
+base_memory_manager - > parametric_dram_directory_msi/ memory_mamanger
+
+
+open core.cc
+memory_mamanger_base
+
+track this function : initiateMemoryAccess
+coreInitiateMemoryAccess
+
+
+1)	core.cc 		coreinitiatememoryAccess
+2)	memory_manager.cc = coreinitiateMemoryAccess
+3)	coreInitiateMemoryAccess  calls either accesstlb(itlb or dtlb)
+4)	processMemOpFromCore    1) call -> operationPermissibleinCache
+				2) IF CACHE hit then update counter else
+				3) call next level cache controllers funct
+					processShmemReqFromPrevCache
+				4) processShmemReqFromPrevCache CALLS ITSELF TILL HIT OR 
+					IF LLC IT ACCESSES DRAM
+				5) accessDRAM CALLS file (dram_cntlr_interface  abstract class=virtual)
+					I)  getdataFROMDRAM if read OPeration
+					II) putDatatoDRAM if write operation
+			virtual function in dram_cntlr_interface class are defined in dram/dram_cache.cc
+			or in DRAM_CNTLR.H AS DRAM_CNTLR CLASS INHERITS IT.. IN OUR CASE DRAM_CNTLR CLASS
+			in class dram_cache.
+
+		
+
+
