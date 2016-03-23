@@ -1,12 +1,11 @@
-#ifndef __DYN_RECONF_H
-#define __DYN_RECONF_H
+#ifndef DYN_RECONF_H
+#define DYN_RECONF_H
 
 #include "fixed_types.h"
 
 class Dyn_reconf
 {
-	
-public:
+	public:
 		enum Status
 	      	{
 		 STABLE = 0,
@@ -18,7 +17,7 @@ public:
 		~Dyn_reconf();
 		void incrementCount()
 		{
-			p_instruction_count+=1;
+			//p_instruction_count+=1;
 		}
 		void processAddress(IntPtr );
 		UInt64 getInstructionCount()
@@ -36,7 +35,7 @@ public:
 		IntPtr p_base_addr;
 		IntPtr p_last_base_addr;
 		Status state;				
-	
+		
 //	protected:
 };
 

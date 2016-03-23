@@ -84,6 +84,7 @@ Thread* ThreadManager::createThread_unlocked(app_id_t app_id, thread_id_t creato
    {
       Core *core = Sim()->getCoreManager()->getCoreFromID(core_id);
       thread->setCore(core);
+	PRAK_LOG("REached thread_manager");
       core->setState(Core::INITIALIZING);
    }
 

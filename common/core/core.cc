@@ -16,7 +16,7 @@
 #include "stats.h"
 #include "topology_info.h"
 #include "cheetah_manager.h"
-
+#include "dyn_reconf.h"
 #include <cstring>
 
 #if 0
@@ -93,8 +93,7 @@ Core::Core(SInt32 id)
 
 //--------------PRAK
 
-	reconfigurator= new Dyn_reconf();
-
+	
 	char filename[20];
 	
         sprintf(filename, "addr_%u.txt",m_core_id);
@@ -118,13 +117,26 @@ Core::Core(SInt32 id)
          this, m_network, m_shmem_perf_model);
 
    m_performance_model = PerformanceModel::create(this);
+
+
+	reconfigurator= new Dyn_reconf();
+	if(reconfigurator==NULL)
+	{
+		PRAK_LOG("Can't initialize dyn_reconf\n");
+	}
+	else
+	{
+		PRAK_LOG("Initialized dyn_reconf\n");		
+	}
+
+	PRAK_LOG("Core construtor ends here");
 }
 
 Core::~Core()
 {
 //-------------PRAK
 	fclose(getFileptr());
-	printf("Count:%lld core:%d \n",reconfigurator->getInstructionCount(),m_core_id);
+	PRAK_LOG("Count:%lld core:%d \n",reconfigurator->getInstructionCount(),m_core_id);
 	
 //-------------------------------------
 
@@ -139,7 +151,11 @@ Core::~Core()
    if (m_clock_skew_minimization_client)
       delete m_clock_skew_minimization_client;
    delete m_network;
-delete reconfigurator;
+
+	if(reconfigurator)		
+	{	PRAK_LOG("Deleting reconfigurator");
+		delete reconfigurator;
+	}
 }
 
 void Core::enablePerformanceModels()
@@ -258,7 +274,7 @@ Core::readInstructionMemory(IntPtr address, UInt32 instruction_size)
 //------------PRAK------------
 	p_count+=1;
 	reconfigurator->incrementCount();
-	fprintf(fptr,"0x%x:%lld\n",address,p_count);
+	//fprintf(fptr,"0x%x:%lld\n",address,p_count);
 
 //------------------------------
 
