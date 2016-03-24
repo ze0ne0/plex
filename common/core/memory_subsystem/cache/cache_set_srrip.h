@@ -9,7 +9,7 @@ class CacheSetSRRIP : public CacheSet
    public:
       CacheSetSRRIP(String cfgname, core_id_t core_id,
             CacheBase::cache_t cache_type,
-            UInt32 associativity, UInt32 blocksize, CacheSetInfoLRU* set_info, UInt8 num_attempts);
+            UInt32 associativity, UInt32 blocksize, CacheSetInfoLRU* set_info, UInt8 num_attempts,bool ifLeader);
       ~CacheSetSRRIP();
 
       UInt32 getReplacementIndex(CacheCntlr *cntlr);

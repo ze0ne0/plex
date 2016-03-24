@@ -7,7 +7,7 @@ class CacheSetMRU : public CacheSet
 {
    public:
       CacheSetMRU(CacheBase::cache_t cache_type,
-            UInt32 associativity, UInt32 blocksize);
+            UInt32 associativity, UInt32 blocksize,bool ifLeader);
       ~CacheSetMRU();
 
       UInt32 getReplacementIndex(CacheCntlr *cntlr);

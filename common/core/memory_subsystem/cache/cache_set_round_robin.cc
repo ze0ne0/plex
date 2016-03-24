@@ -2,8 +2,8 @@
 
 CacheSetRoundRobin::CacheSetRoundRobin(
       CacheBase::cache_t cache_type,
-      UInt32 associativity, UInt32 blocksize) :
-   CacheSet(cache_type, associativity, blocksize)
+      UInt32 associativity, UInt32 blocksize,bool ifLeader) :
+   CacheSet(cache_type, associativity, blocksize,ifLeader)
 {
    m_replacement_index = m_associativity - 1;
 }

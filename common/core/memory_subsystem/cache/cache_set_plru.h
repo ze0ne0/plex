@@ -7,7 +7,7 @@ class CacheSetPLRU : public CacheSet
 {
    public:
       CacheSetPLRU(CacheBase::cache_t cache_type,
-            UInt32 associativity, UInt32 blocksize);
+            UInt32 associativity, UInt32 blocksize,bool ifLeader);
       ~CacheSetPLRU();
 
       UInt32 getReplacementIndex(CacheCntlr *cntlr);

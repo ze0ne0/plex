@@ -6,7 +6,7 @@
 class CacheSetInfoLRU : public CacheSetInfo
 {
    public:
-      CacheSetInfoLRU(String name, String cfgname, core_id_t core_id, UInt32 associativity, UInt8 num_attempts,bool ifLeader);
+      CacheSetInfoLRU(String name, String cfgname, core_id_t core_id, UInt32 associativity, UInt8 num_attempts);
       virtual ~CacheSetInfoLRU();
       void increment(UInt32 index)
       {
@@ -30,7 +30,7 @@ class CacheSetLRU : public CacheSet
 {
    public:
       CacheSetLRU(CacheBase::cache_t cache_type,
-            UInt32 associativity, UInt32 blocksize, CacheSetInfoLRU* set_info, UInt8 num_attempts);
+            UInt32 associativity, UInt32 blocksize, CacheSetInfoLRU* set_info, UInt8 num_attempts,bool ifLeader);
       virtual ~CacheSetLRU();
 
       virtual UInt32 getReplacementIndex(CacheCntlr *cntlr);

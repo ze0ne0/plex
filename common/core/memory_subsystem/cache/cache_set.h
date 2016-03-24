@@ -14,20 +14,8 @@
 // can collect data from all CacheSet* objects which are per set and implement the actual replacement policy
 class CacheSetInfo
 {
-//--------------------PRAK-LOG-----------------------
-   private:	
-	bool isLeader;
-   public:
-	CacheSetInfo(bool ifLeader)
-	{
-		isLeader=ifLeader;
-	}
-	bool isLeaderSet()
-	{
-		return isLeader;
-	}
-//---------------------------------------------------	
 
+   public:
       virtual ~CacheSetInfo() {}
 };
 
@@ -36,22 +24,25 @@ class CacheSet
 {
    public:
 
-      static CacheSet* createCacheSet(String cfgname, core_id_t core_id, String replacement_policy, CacheBase::cache_t cache_type, UInt32 associativity, UInt32 blocksize, CacheSetInfo* set_info = NULL);
-      static CacheSetInfo* createCacheSetInfo(String name, String cfgname, core_id_t core_id, String replacement_policy, UInt32 associativity,bool);
+      static CacheSet* createCacheSet(String cfgname, core_id_t core_id, String replacement_policy, CacheBase::cache_t cache_type, UInt32 associativity, UInt32 blocksize, CacheSetInfo* set_info = NULL,bool ifLeader=false);
+      static CacheSetInfo* createCacheSetInfo(String name, String cfgname, core_id_t core_id, String replacement_policy, UInt32 associativity);
       static CacheBase::ReplacementPolicy parsePolicyType(String policy);
       static UInt8 getNumQBSAttempts(CacheBase::ReplacementPolicy, String cfgname, core_id_t core_id);
 
    protected:
       CacheBlockInfo** m_cache_block_info_array;
-      char* m_blocks;
+      char* m_blocks; 	
       UInt32 m_associativity;
       UInt32 m_blocksize;
       Lock m_lock;
+//----------PRAK-LOG
+	bool isLeader;
+//--------------------
+
 
    public:
 
-      CacheSet(CacheBase::cache_t cache_type,
-            UInt32 associativity, UInt32 blocksize);
+      CacheSet(CacheBase::cache_t cache_type,UInt32 associativity, UInt32 blocksize,bool ifLeader);//PRAK-LOG
       virtual ~CacheSet();
 
       UInt32 getBlockSize() { return m_blocksize; }
@@ -73,6 +64,11 @@ class CacheSet
       virtual void updateReplacementIndex(UInt32) = 0;
 
       bool isValidReplacement(UInt32 index);
+//---PRAK-LOG
+	bool isLeaderSet()
+	{
+		return isLeader;
+	}
 };
 
 #endif /* CACHE_SET_H */

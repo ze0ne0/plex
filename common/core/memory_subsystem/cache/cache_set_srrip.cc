@@ -8,8 +8,8 @@
 CacheSetSRRIP::CacheSetSRRIP(
       String cfgname, core_id_t core_id,
       CacheBase::cache_t cache_type,
-      UInt32 associativity, UInt32 blocksize, CacheSetInfoLRU* set_info, UInt8 num_attempts)
-   : CacheSet(cache_type, associativity, blocksize)
+      UInt32 associativity, UInt32 blocksize, CacheSetInfoLRU* set_info, UInt8 num_attempts,bool ifLeader)
+   : CacheSet(cache_type, associativity, blocksize,ifLeader)
    , m_rrip_numbits(Sim()->getCfg()->getIntArray(cfgname + "/srrip/bits", core_id))
    , m_rrip_max((1 << m_rrip_numbits) - 1)
    , m_rrip_insert(m_rrip_max - 1)

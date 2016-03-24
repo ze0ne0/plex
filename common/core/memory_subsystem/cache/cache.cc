@@ -86,14 +86,25 @@ Cache::Cache(
 
 
 
-   m_set_info = CacheSet::createCacheSetInfo(name, cfgname, core_id, replacement_policy, m_associativity,false);  //FOLLOWER SET
-   p_set_info = CacheSet::createCacheSetInfo(name, cfgname, core_id, replacement_policy, m_associativity,true);   // LEADER SET
-
+   m_set_info = CacheSet::createCacheSetInfo(name, cfgname, core_id, replacement_policy, m_associativity);
 	PRAK_LOG("Calling cache set constrcutor");
+
    m_sets = new CacheSet*[m_num_sets];
+
+   int a_index=1; 
    for (UInt32 i = 0; i < m_num_sets; i++)
    {
-      m_sets[i] = CacheSet::createCacheSet(cfgname, core_id, replacement_policy, m_cache_type, m_associativity, m_blocksize, m_set_info);
+	if(a_index <= p_total_atds && i==(a_index*64-1))
+	{
+		 m_sets[i] = CacheSet::createCacheSet(cfgname, core_id, replacement_policy, m_cache_type, m_associativity, m_blocksize, m_set_info,true);
+		 a_index+=1;
+		PRAK_LOG("creating leader set @i:%d",i);
+	}
+	else
+	{
+		m_sets[i] = CacheSet::createCacheSet(cfgname, core_id, replacement_policy, m_cache_type, m_associativity, m_blocksize, m_set_info,false);
+	}
+     
    }
 
 //------------------------------------------------------------
