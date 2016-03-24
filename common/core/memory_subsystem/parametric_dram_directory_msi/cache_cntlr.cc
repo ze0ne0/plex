@@ -169,6 +169,7 @@ CacheCntlr::CacheCntlr(MemComponent::component_t mem_component,
 
 	PRAK_LOG("Allocating shared cache once in mast_core_id=%d ",m_core_id);	
       m_master = new CacheMasterCntlr(name, core_id, cache_params.outstanding_misses);
+//------------------------------PRAK-LOG---SHARED-CACHE
       m_master->m_cache = new Cache(name,
             "perf_model/" + cache_params.configName,
             m_core_id,
@@ -181,6 +182,8 @@ CacheCntlr::CacheCntlr(MemComponent::component_t mem_component,
             Sim()->getFaultinjectionManager()
                ? Sim()->getFaultinjectionManager()->getFaultInjector(m_core_id_master, mem_component)
                : NULL);
+//-----------------------------PRAK-LOG-----SHARED-CACHE--ALLOCATION---ENDS-HERE
+
       m_master->m_prefetcher = Prefetcher::createPrefetcher(cache_params.prefetcher, cache_params.configName, m_core_id, m_shared_cores);
 
       if (Sim()->getCfg()->getBoolDefault("perf_model/" + cache_params.configName + "/atd/enabled", false))

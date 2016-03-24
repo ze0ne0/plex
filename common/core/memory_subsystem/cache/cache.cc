@@ -26,7 +26,10 @@ Cache::Cache(
 {
 	PRAK_LOG("Allocating cache.cc by core=%d cach.cfg=%s",core_id,cfgname.c_str());
 
+//
+
    m_set_info = CacheSet::createCacheSetInfo(name, cfgname, core_id, replacement_policy, m_associativity);
+
    m_sets = new CacheSet*[m_num_sets];
    for (UInt32 i = 0; i < m_num_sets; i++)
    {

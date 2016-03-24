@@ -44,7 +44,9 @@ CacheBlockInfo::create(CacheBase::cache_t cache_type)
          return new PrL2CacheBlockInfo();
 
       case CacheBase::SHARED_CACHE:
-         return new SharedCacheBlockInfo();
+        return new SharedCacheBlockInfo();   
+//         return new PrL2CacheBlockInfo(); //This is changed on 24th of march 2016
+
 
       default:
          LOG_PRINT_ERROR("Unrecognized cache type (%u)", cache_type);

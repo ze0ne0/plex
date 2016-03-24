@@ -28,7 +28,7 @@ CoreManager::CoreManager()
       m_cores.push_back(new Core(i));
 	PRAK_LOG("STARTING CORE %d \n",i);
    }
-
+   PRAK_LOG("Finished CoreManager Constructor.");
    LOG_PRINT("Finished CoreManager Constructor.");
 }
 

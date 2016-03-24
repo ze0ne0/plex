@@ -94,7 +94,9 @@ void Simulator::start()
    m_thread_stats_manager = new ThreadStatsManager();
    m_clock_skew_minimization_manager = ClockSkewMinimizationManager::create();
    m_clock_skew_minimization_server = ClockSkewMinimizationServer::create();
-   m_core_manager = new CoreManager();
+	PRAK_LOG("Calling core-manager initiate");	   
+m_core_manager = new CoreManager();
+	PRAK_LOG("FINISHED core-manager now in simulator");	   
    m_sim_thread_manager = new SimThreadManager();
    m_sampling_manager = new SamplingManager();
    m_fastforward_performance_manager = FastForwardPerformanceManager::create();

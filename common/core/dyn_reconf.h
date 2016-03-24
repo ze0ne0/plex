@@ -16,19 +16,10 @@ public:
 
 		Dyn_reconf();
 		~Dyn_reconf();
-		void incrementCount()
-		{
-			p_instruction_count+=1;
-		}
+		void incrementCount();
 		void processAddress(IntPtr );
-		UInt64 getInstructionCount()
-		{
-			return p_instruction_count;
-		}
-		Status getState()
-		{
-			return state;
-		}
+		UInt64 getInstructionCount();
+		Status getState();
 	private:
 		UInt64 p_instruction_count;
 		UInt64 p_base_count;
