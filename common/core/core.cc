@@ -92,6 +92,9 @@ Core::Core(SInt32 id)
    	registerStatsMetric("core", id, "spin_elapsed_time", &m_spin_elapsed_time);
 
 //--------------PRAK
+
+	reconfigurator= new Dyn_reconf();
+
 	char filename[20];
 	
         sprintf(filename, "addr_%u.txt",m_core_id);
@@ -119,7 +122,12 @@ Core::Core(SInt32 id)
 
 Core::~Core()
 {
+//-------------PRAK
 	fclose(getFileptr());
+	printf("Count:%lld core:%d \n",reconfigurator->getInstructionCount(),m_core_id);
+	
+//-------------------------------------
+
 
    if (m_cheetah_manager)
       delete m_cheetah_manager;
@@ -127,9 +135,11 @@ Core::~Core()
    delete m_memory_manager;
    delete m_shmem_perf_model;
    delete m_performance_model;
+   
    if (m_clock_skew_minimization_client)
       delete m_clock_skew_minimization_client;
    delete m_network;
+delete reconfigurator;
 }
 
 void Core::enablePerformanceModels()
@@ -246,8 +256,9 @@ Core::readInstructionMemory(IntPtr address, UInt32 instruction_size)
            address, instruction_size);
 
 //------------PRAK------------
-p_count+=1;
-fprintf(fptr,"0x%x:%lld\n",address,p_count);
+	p_count+=1;
+	reconfigurator->incrementCount();
+	fprintf(fptr,"0x%x:%lld\n",address,p_count);
 
 //------------------------------
 
