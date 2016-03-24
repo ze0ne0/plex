@@ -49,4 +49,11 @@ in cache constructor Cache
 5) 
 
 
+NumberofATDs for 4MB cache-> 8192 sets
+sampling ratio of 64 	means 8192/64=128 atds
+modules 16 means modules size=8192/16=512
 
+num_atd_in_each_module=128/16=8
+
+atds numbers are
+63->127->191->255->319->383->447->511
