@@ -18,7 +18,7 @@ ATD::ATD(String name, String configName, core_id_t core_id, UInt32 num_sets, UIn
    , loads_destructive(0)
    , stores_destructive(0)
 {
-   m_set_info = CacheSet::createCacheSetInfo(name, configName, core_id, replacement_policy, associativity);
+   m_set_info = CacheSet::createCacheSetInfo(name, configName, core_id, replacement_policy, associativity,false);
 
    registerStatsMetric(name, core_id, "loads", &loads);
    registerStatsMetric(name, core_id, "stores", &stores);

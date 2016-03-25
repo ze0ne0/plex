@@ -12,8 +12,14 @@ TLB::TLB(String name, String cfgname, core_id_t core_id, UInt32 num_entries, UIn
    , m_access(0)
    , m_miss(0)
 {
+
+	//----------------PRAK_LOG
+	PRAK_LOG("In tlb constrcutor initiating :%s ",name.c_str());
+	//----------------ENDS HERE
+
    LOG_ASSERT_ERROR((num_entries / associativity) * associativity == num_entries, "Invalid TLB configuration: num_entries(%d) must be a multiple of the associativity(%d)", num_entries, associativity);
 
+	
    registerStatsMetric(name, core_id, "access", &m_access);
    registerStatsMetric(name, core_id, "miss", &m_miss);
 }

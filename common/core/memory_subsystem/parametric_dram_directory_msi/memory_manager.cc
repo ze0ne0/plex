@@ -68,11 +68,16 @@ MemoryManager::MemoryManager(Core* core,
    {
       m_cache_block_size = Sim()->getCfg()->getInt("perf_model/l1_icache/cache_block_size");
 
+	PRAK_LOG("cACHE BLOCK SIZE=%d",m_cache_block_size);
+
       m_last_level_cache = (MemComponent::component_t)(Sim()->getCfg()->getInt("perf_model/cache/levels") - 2 + MemComponent::L2_CACHE);
 
       UInt32 stlb_size = Sim()->getCfg()->getInt("perf_model/stlb/size");
       if (stlb_size)
-         m_stlb = new TLB("stlb", "perf_model/stlb", getCore()->getId(), stlb_size, Sim()->getCfg()->getInt("perf_model/stlb/associativity"), NULL);
+      {
+		PRAK_LOG("Creating stlb ");
+	   m_stlb = new TLB("stlb", "perf_model/stlb", getCore()->getId(), stlb_size, Sim()->getCfg()->getInt("perf_model/stlb/associativity"), NULL);
+      }
       UInt32 itlb_size = Sim()->getCfg()->getInt("perf_model/itlb/size");
       if (itlb_size)
          m_itlb = new TLB("itlb", "perf_model/itlb", getCore()->getId(), itlb_size, Sim()->getCfg()->getInt("perf_model/itlb/associativity"), m_stlb);

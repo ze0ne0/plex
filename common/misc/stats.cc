@@ -173,6 +173,12 @@ StatsManager::registerMetric(StatsMetricBase *metric)
 {
    std::string _objectName(metric->objectName.c_str()), _metricName(metric->metricName.c_str());
 
+//--------------PRAK-LOG------------
+
+	//PRAK_LOG("REGISTRING OBJECT=%s as metric=%s ",metric->objectName.c_str() , metric->metricName.c_str());
+
+//--------------PRAK-LOG---ENDS--HERE
+
    LOG_ASSERT_ERROR(m_objects[_objectName][_metricName].second.count(metric->index) == 0,
       "Duplicate statistic %s.%s[%d]", _objectName.c_str(), _metricName.c_str(), metric->index);
    m_objects[_objectName][_metricName].second[metric->index] = metric;
