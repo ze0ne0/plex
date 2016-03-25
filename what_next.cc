@@ -57,3 +57,20 @@ num_atd_in_each_module=128/16=8
 
 atds numbers are
 63->127->191->255->319->383->447->511
+
+In order to collect profiling information we need change set info which will decide leader set
+and leader set won't be turned off;
+
+"CreateCacheSetInfo"   calls cache_set.h file 
+CacheSetInfo is defined solely in "cache_set.h" file
+
+IMP we will add bool isLeaderSet=true if leader set otherwise false for follower set
+
+
+cache_set.cc-----createCacheSetInfo  ---calls --> CacheSetLRUInfo
+
+chnage all declaration where we are including boolean argument "ifLeader"
+which will be assigned to "isLeader" in "CacheSetInfo" class constructor
+
+
+

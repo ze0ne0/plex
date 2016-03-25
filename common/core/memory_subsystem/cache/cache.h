@@ -28,7 +28,9 @@ class Cache : public CacheBase
       cache_t m_cache_type;
 
       CacheSet** m_sets;
-      CacheSetInfo* m_set_info;
+      CacheSetInfo* m_set_info;//Follower sets
+//-------------PRAK-LOG-----------------------------
+      CacheSetInfo* p_set_info;// Leader sets
 
       FaultInjector *m_fault_injector;
 
