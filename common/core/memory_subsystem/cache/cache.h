@@ -29,9 +29,6 @@ class Cache : public CacheBase
 
       CacheSet** m_sets;
       CacheSetInfo* m_set_info;//Follower sets
-//-------------PRAK-LOG-----------------------------
-      CacheSetInfo* p_set_info;// Leader sets
-
       FaultInjector *m_fault_injector;
 
 //-----------------PRAK-LOG-----------------
@@ -42,6 +39,7 @@ class Cache : public CacheBase
 	int p_atds_per_module;
 	int p_sampling_ratio;
 	int p_total_atds;
+	UInt32 print_count;
 //----------------PRAK-LOG-ENDS-HERE
 
       #ifdef ENABLE_SET_USAGE_HIST
@@ -74,6 +72,12 @@ class Cache : public CacheBase
       CacheBlockInfo* peekSingleLine(IntPtr addr);
 
       CacheBlockInfo* peekBlock(UInt32 set_index, UInt32 way) const { return m_sets[set_index]->peekBlock(way); }
+
+
+	cache_t getType()
+	{
+		return m_cache_type;
+	}
 
       // Update Cache Counters
       void updateCounters(bool cache_hit);

@@ -219,7 +219,9 @@ namespace ParametricDramDirectoryMSI
          bool m_coherent;
          bool m_prefetch_on_prefetch_hit;
          bool m_l1_mshr;
-
+//---------------PRAK-LOG
+	UInt32 print_count;
+//--------------------------
          struct {
            UInt64 loads, stores;
            UInt64 load_misses, store_misses;

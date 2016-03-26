@@ -25,7 +25,7 @@ Cache::Cache(
    m_fault_injector(fault_injector)
 {
 	PRAK_LOG("Allocating cache.cc by core=%d cach.cfg=%s",core_id,cfgname.c_str());
-
+	print_count=0;
 //
 //----------------PRAK-LOG---------------
 	if(cache_type==CacheBase::SHARED_CACHE)
@@ -96,9 +96,9 @@ Cache::Cache(
    {
 	if(a_index <= p_total_atds && i==(a_index*64-1))
 	{
-		 m_sets[i] = CacheSet::createCacheSet(cfgname, core_id, replacement_policy, m_cache_type, m_associativity, m_blocksize, m_set_info,true);
-		 a_index+=1;
-		PRAK_LOG("creating leader set @i:%d",i);
+m_sets[i] = CacheSet::createCacheSet(cfgname, core_id, replacement_policy, m_cache_type, m_associativity, m_blocksize, m_set_info,true);
+	 a_index+=1;
+		//PRAK_LOG("creating leader set @i:%d",i);
 	}
 	else
 	{
@@ -241,7 +241,13 @@ Cache::peekSingleLine(IntPtr addr)
    IntPtr tag;
    UInt32 set_index;
    splitAddress(addr, tag, set_index);
+	String cac_t=new String("L2");
 
+	if( getName()==cac_t && print_count< 25)
+	{
+		print_count++;
+		PRAK_LOG("peek addr:(0x%x) cache:%s",addr,getName().c_str());	
+	}
    return m_sets[set_index]->find(tag);
 }
 

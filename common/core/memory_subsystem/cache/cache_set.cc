@@ -17,6 +17,9 @@ CacheSet::CacheSet(CacheBase::cache_t cache_type,
       UInt32 associativity, UInt32 blocksize,bool ifLeader):
       m_associativity(associativity), m_blocksize(blocksize), isLeader(ifLeader)
 {
+	//PRAK-LOG
+	print_count=0;
+
    m_cache_block_info_array = new CacheBlockInfo*[m_associativity];
    for (UInt32 i = 0; i < m_associativity; i++)
    {

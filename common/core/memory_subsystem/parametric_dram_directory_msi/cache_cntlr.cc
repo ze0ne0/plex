@@ -155,6 +155,12 @@ CacheCntlr::CacheCntlr(MemComponent::component_t mem_component,
    m_shmem_perf_global(NULL),
    m_shmem_perf_model(shmem_perf_model)
 {
+
+//--PRAK-LOG
+	print_count=0;
+//------------
+
+
    m_core_id_master = m_core_id - m_core_id % m_shared_cores;
    Sim()->getStatsManager()->logTopology(name, core_id, m_core_id_master);
 
@@ -791,6 +797,13 @@ CacheCntlr::processShmemReqFromPrevCache(CacheCntlr* requester, Core::mem_op_t m
    HitWhere::where_t hit_where = HitWhere::MISS;
    SharedCacheBlockInfo* cache_block_info = getCacheBlockInfo(address);
 
+//----------------PRAK-LOG
+	if(print_count<=25 && m_master->m_cache->getType()==CacheBase::SHARED_CACHE)
+	{
+PRAK_LOG("in xyz aft opcall addr:(0x%x) cac_t:%s hit/miss=%d",address,m_master->m_cache->getName().c_str(),cache_hit);
+		print_count++;
+	}
+//---------------------------
    if (!cache_hit && m_perfect)
    {
       cache_hit = true;

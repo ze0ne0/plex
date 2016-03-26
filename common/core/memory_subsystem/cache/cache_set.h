@@ -37,6 +37,7 @@ class CacheSet
       Lock m_lock;
 //----------PRAK-LOG
 	bool isLeader;
+	UInt32 print_count;
 //--------------------
 
 

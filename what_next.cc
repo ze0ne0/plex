@@ -22,6 +22,13 @@ coreInitiateMemoryAccess
 				2) IF CACHE hit then update counter else
 				3) call next level cache controllers funct
 					processShmemReqFromPrevCache
+				3.1) processShmemReqFromPrevCache calls operationPermissibleinCache function in cache_cntlr.cc/parametric_dsi
+				3.2) operationPermissibleinCache calls getCacheBlockInfo(address) if return NULL means block is not in cache
+				3.3) getCacheBlockInfo calls peekSingleLine function in cache.cc
+				3.4) peekSingleLine function splits address into tag and index and calls find function in cache_set.cc
+				     using tag as argument and line_index+NULL as default arg.
+				3.5)
+		
 				4) processShmemReqFromPrevCache CALLS ITSELF TILL HIT OR 
 					IF LLC IT ACCESSES DRAM
 				5) accessDRAM CALLS file (dram_cntlr_interface  abstract class=virtual)
@@ -71,6 +78,11 @@ cache_set.cc-----createCacheSetInfo  ---calls --> CacheSetLRUInfo
 
 chnage all declaration where we are including boolean argument "ifLeader"
 which will be assigned to "isLeader" in "CacheSetInfo" class constructor
+
+
+next objective is to:
+			create non-inclusize cache
+			remove writebacks
 
 
 
