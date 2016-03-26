@@ -407,6 +407,12 @@ namespace ParametricDramDirectoryMSI
          bool isInLowerLevelCache(CacheBlockInfo *block_info);
          void incrementQBSLookupCost();
 
+
+	MemComponent::component_t getMemComponent()
+	{
+		return m_mem_component;
+	}
+
          void enable() { m_master->m_cache->enable(); }
          void disable() { m_master->m_cache->disable(); }
 

@@ -241,9 +241,9 @@ Cache::peekSingleLine(IntPtr addr)
    IntPtr tag;
    UInt32 set_index;
    splitAddress(addr, tag, set_index);
-	String cac_t=new String("L2");
+//	String cac_t=new String("L2");
 
-	if( getName()==cac_t && print_count< 25)
+	if( getName().c_str()=="L2" && print_count< 25)
 	{
 		print_count++;
 		PRAK_LOG("peek addr:(0x%x) cache:%s",addr,getName().c_str());	

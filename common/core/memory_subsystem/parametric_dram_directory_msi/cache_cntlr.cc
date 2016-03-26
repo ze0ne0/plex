@@ -17,16 +17,17 @@
 //#define PRIVATE_L2_OPTIMIZATION
 
 Lock iolock;
-#if 0
+FILE *fp=fopen("new.log","w");
+#if 1
 #  define LOCKED(...) { ScopedLock sl(iolock); fflush(stderr); __VA_ARGS__; fflush(stderr); }
-#  define LOGID() fprintf(stderr, "[%s] %2u%c [ %2d(%2d)-L%u%c ] %-25s@%3u: ", \
+#  define LOGID()       fprintf(stderr, "[%s] %2u%c [ %2d(%2d)-L%u%c ] %-25s@%3u: ", \
                      itostr(getShmemPerfModel()->getElapsedTime(Sim()->getCoreManager()->amiUserThread() ? ShmemPerfModel::_USER_THREAD : ShmemPerfModel::_SIM_THREAD)).c_str(), Sim()->getCoreManager()->getCurrentCoreID(), \
                      Sim()->getCoreManager()->amiUserThread() ? '^' : '_', \
                      m_core_id_master, m_core_id, m_mem_component < MemComponent::L2_CACHE ? 1 : m_mem_component - MemComponent::L2_CACHE + 2, \
                      m_mem_component == MemComponent::L1_ICACHE ? 'I' : (m_mem_component == MemComponent::L1_DCACHE  ? 'D' : ' '),  \
                      __FUNCTION__, __LINE__ \
                   );
-#  define MYLOG(...) LOCKED(LOGID(); fprintf(stderr, __VA_ARGS__); fprintf(stderr, "\n");)
+#  define MYLOG(...) LOCKED(/*LOGID();*/ fprintf(fp, __VA_ARGS__); fprintf(fp, "\n");)
 #  define DUMPDATA(data_buf, data_length) { for(UInt32 i = 0; i < data_length; ++i) fprintf(stderr, "%02x ", data_buf[i]); }
 #else
 #  define MYLOG(...) {}
@@ -342,8 +343,11 @@ CacheCntlr::processMemOpFromCore(
 
    LOG_PRINT("processMemOpFromCore(), lock_signal(%u), mem_op_type(%u), ca_address(0x%x)",
              lock_signal, mem_op_type, ca_address);
+
 MYLOG("----------------------------------------------");
 MYLOG("%c%c %lx+%u..+%u", mem_op_type == Core::WRITE ? 'W' : 'R', mem_op_type == Core::READ_EX ? 'X' : ' ', ca_address, offset, data_length);
+
+
 LOG_ASSERT_ERROR((ca_address & (getCacheBlockSize() - 1)) == 0, "address at cache line + %x", ca_address & (getCacheBlockSize() - 1));
 LOG_ASSERT_ERROR(offset + data_length <= getCacheBlockSize(), "access until %u > %u", offset + data_length, getCacheBlockSize());
 
@@ -371,9 +375,17 @@ LOG_ASSERT_ERROR(offset + data_length <= getCacheBlockSize(), "access until %u >
 
    CacheBlockInfo *cache_block_info;
 
+//PRAK_LOG
 	// if cache block info found means its hit otherwise return NULL in cache block info inturn returns cache miss
    bool cache_hit = operationPermissibleinCache(ca_address, mem_op_type, &cache_block_info), prefetch_hit = false;
 
+
+	//********************************
+	//*	NON-PERFECT CACHE
+	//*	I am commenting below part DATE:26 march
+	//***********************************
+
+/*
    if (!cache_hit && m_perfect)
    {
 	// if cache miss and cache is perfect but our case cache is NOT PERFECT
@@ -390,14 +402,15 @@ LOG_ASSERT_ERROR(offset + data_length <= getCacheBlockSize(), "access until %u >
 	
       }
    }
-   else if (cache_hit && m_passthrough)
+
+  else  if (cache_hit && m_passthrough)
    {
 	// if cache HIT and passthrough=true NOT OUR CASE 
       cache_hit = false;
       cache_block_info->invalidate();
       cache_block_info = NULL;
    }
-
+*/
    if (count)
    {
       ScopedLock sl(getLock());
@@ -409,15 +422,18 @@ LOG_ASSERT_ERROR(offset + data_length <= getCacheBlockSize(), "access until %u >
 //-------------------NOW OUR CASE STARTS
    if (cache_hit)
    {
-	MYLOG("L1 hit");
+
+      MYLOG("L1 hit");
       getMemoryManager()->incrElapsedTime(m_mem_component, CachePerfModel::ACCESS_CACHE_DATA_AND_TAGS, ShmemPerfModel::_USER_THREAD);
       hit_where = (HitWhere::where_t)m_mem_component;
-
+	
+	//----log cache warm-up information
       if (cache_block_info->hasOption(CacheBlockInfo::WARMUP) && Sim()->getInstrumentationMode() != InstMode::CACHE_ONLY)
       {
          stats.hits_warmup++;
          cache_block_info->clearOption(CacheBlockInfo::WARMUP);
       }
+
       if (cache_block_info->hasOption(CacheBlockInfo::PREFETCH))
       {
          // This line was fetched by the prefetcher and has proven useful
@@ -493,19 +509,19 @@ LOG_ASSERT_ERROR(offset + data_length <= getCacheBlockSize(), "access until %u >
          invalidateCacheBlock(ca_address);
       }
 
-	MYLOG("processMemOpFromCore l%d before next", m_mem_component);
+	MYLOG("processMemOpFromCore l%d name=%s before next", m_mem_component,MemComponentString(m_mem_component));
 
 	//----PRAK_LOG();
       hit_where = m_next_cache_cntlr->processShmemReqFromPrevCache(this, mem_op_type, ca_address, modeled, count, Prefetch::NONE, t_start, false);
       bool next_cache_hit = hit_where != HitWhere::MISS;
-MYLOG("processMemOpFromCore l%d next hit = %d", m_mem_component, next_cache_hit);
+MYLOG("processMemOpFromCore l%d name=%s next hit = %d", m_mem_component,MemComponentString(m_mem_component),next_cache_hit);
 
       if (next_cache_hit) {
 
       } else {
          /* last level miss, a message has been sent. */
 
-MYLOG("processMemOpFromCore l%d waiting for sent message", m_mem_component);
+MYLOG("processMemOpFromCore l%d=%s waiting for sent message", m_mem_component,MemComponentString(m_mem_component));
          #ifdef PRIVATE_L2_OPTIMIZATION
          releaseLock(ca_address);
          #else
@@ -513,18 +529,18 @@ MYLOG("processMemOpFromCore l%d waiting for sent message", m_mem_component);
          #endif
 
          waitForNetworkThread();
-MYLOG("processMemOpFromCore l%d postwakeup", m_mem_component);
+MYLOG("processMemOpFromCore l%d=%s postwakeup", m_mem_component,MemComponentString(m_mem_component));
 
          //acquireStackLock(ca_address);
          // Pass stack lock through from network thread
 
          wakeUpNetworkThread();
-MYLOG("processMemOpFromCore l%d got message reply", m_mem_component);
+MYLOG("processMemOpFromCore l%d=%s got message reply", m_mem_component,MemComponentString(m_mem_component));
 
          /* have the next cache levels fill themselves with the new data */
-MYLOG("processMemOpFromCore l%d before next fill", m_mem_component);
+MYLOG("processMemOpFromCore l%d=%s before next fill", m_mem_component,MemComponentString(m_mem_component));
          hit_where = m_next_cache_cntlr->processShmemReqFromPrevCache(this, mem_op_type, ca_address, false, false, Prefetch::NONE, t_start, true);
-MYLOG("processMemOpFromCore l%d after next fill", m_mem_component);
+MYLOG("processMemOpFromCore l%d=%s after next fill", m_mem_component,MemComponentString(m_mem_component));
          LOG_ASSERT_ERROR(hit_where != HitWhere::MISS,
             "Tried to read in next-level cache, but data is already gone");
 
@@ -649,7 +665,7 @@ CacheCntlr::copyDataFromNextLevel(Core::mem_op_t mem_op_type, IntPtr address, bo
    // TODO: what if it's already gone? someone else may invalitate it between the time it arrived an when we get here...
    LOG_ASSERT_ERROR(m_next_cache_cntlr->operationPermissibleinCache(address, mem_op_type),
       "Tried to read from next-level cache, but data is already gone");
-MYLOG("copyDataFromNextLevel l%d", m_mem_component);
+MYLOG("copyDataFromNextLevel l%d=%s", m_mem_component,MemComponentString(m_mem_component));
 
    Byte data_buf[m_next_cache_cntlr->getCacheBlockSize()];
    m_next_cache_cntlr->retrieveCacheBlock(address, data_buf, ShmemPerfModel::_USER_THREAD, false);
@@ -672,13 +688,13 @@ MYLOG("copyDataFromNextLevel l%d", m_mem_component);
    {
       // Block already present (upgrade): don't insert, but update
       updateCacheBlock(address, cstate, Transition::UPGRADE, NULL, ShmemPerfModel::_SIM_THREAD);
-      MYLOG("copyDataFromNextLevel l%d done (updated)", m_mem_component);
+      MYLOG("copyDataFromNextLevel l%d=%s done (updated)", m_mem_component,MemComponentString(m_mem_component));
    }
    else
    {
       // Insert the Cache Block in our own cache
       insertCacheBlock(address, cstate, data_buf, m_core_id, ShmemPerfModel::_USER_THREAD);
-      MYLOG("copyDataFromNextLevel l%d done (inserted)", m_mem_component);
+      MYLOG("copyDataFromNextLevel l%d=%s done (inserted)", m_mem_component,MemComponentString(m_mem_component));
    }
 }
 
@@ -793,6 +809,16 @@ CacheCntlr::processShmemReqFromPrevCache(CacheCntlr* requester, Core::mem_op_t m
    #endif
 
    bool cache_hit = operationPermissibleinCache(address, mem_op_type), sibling_hit = false, prefetch_hit = false;
+
+	if(cache_hit)
+	{
+		MYLOG("hit in mem=%s for addr=(0x%x)",MemComponentString(m_mem_component),address);
+	}
+	else
+	{
+		MYLOG("miss in mem=%s for addr=(0x%x)",MemComponentString(m_mem_component),address);
+	}
+
    bool first_hit = cache_hit;
    HitWhere::where_t hit_where = HitWhere::MISS;
    SharedCacheBlockInfo* cache_block_info = getCacheBlockInfo(address);
@@ -986,7 +1012,7 @@ PRAK_LOG("in xyz aft opcall addr:(0x%x) cac_t:%s hit/miss=%d",address,m_master->
 
             cache_hit = true;
             hit_where = HitWhere::where_t(m_mem_component);
-            MYLOG("Silent upgrade from E -> M for address %lx", address);
+            MYLOG("Silent upgrade from E -> M for address %lx mem=%s", address,MemComponentString(m_mem_component));
             cache_block_info->setCState(CacheState::MODIFIED);
          }
          else if (m_master->m_dram_cntlr)
@@ -1071,16 +1097,21 @@ CacheCntlr::notifyPrevLevelInsert(core_id_t core_id, MemComponent::component_t m
 void
 CacheCntlr::notifyPrevLevelEvict(core_id_t core_id, MemComponent::component_t mem_component, IntPtr address)
 {
-MYLOG("@%lx", address);
-   if (m_master->m_evicting_buf && address == m_master->m_evicting_address) {
-MYLOG("here being evicted");
-   } else {
+
+ MYLOG("@%lx", address);
+ 
+  if (m_master->m_evicting_buf && address == m_master->m_evicting_address) 
+   {
+		MYLOG("here being evicted mem=%s",MemComponentString(m_mem_component));
+   } 
+  else 
+  {
       #ifdef ENABLE_TRACK_SHARING_PREVCACHES
-      SharedCacheBlockInfo* cache_block_info = getCacheBlockInfo(address);
-MYLOG("here in state %c", CStateString(getCacheState(address)));
-      assert(cache_block_info);
-      PrevCacheIndex idx = m_master->m_prev_cache_cntlrs.find(core_id, mem_component);
-      cache_block_info->clearCachedLoc(idx);
+	      SharedCacheBlockInfo* cache_block_info = getCacheBlockInfo(address);
+	      MYLOG("here in state %c mem=%s ", CStateString(getCacheState(address)),MemComponentString(m_mem_component));
+	      assert(cache_block_info);
+	      PrevCacheIndex idx = m_master->m_prev_cache_cntlrs.find(core_id, mem_component);
+	      cache_block_info->clearCachedLoc(idx);
       #endif
    }
 }
@@ -1389,11 +1420,15 @@ CacheCntlr::invalidateCacheBlock(IntPtr address)
    assert(old_cstate != CacheState::INVALID);
 
    m_master->m_cache->invalidateSingleLine(address);
+MYLOG("in invalidatecacheblk mem=%s ",MemComponentString(m_mem_component));
 
    if (m_next_cache_cntlr)
+  {
+      MYLOG("calling notifyevict from mem=%s to %s ",MemComponentString(m_mem_component),MemComponentString(m_next_cache_cntlr->getMemComponent()));
+		
       m_next_cache_cntlr->notifyPrevLevelEvict(m_core_id_master, m_mem_component, address);
-
-   MYLOG("%lx %c > %c", address, CStateString(old_cstate), CStateString(getCacheState(address)));
+  }
+   MYLOG("%lx %c > %c mem=%s", address, CStateString(old_cstate), CStateString(getCacheState(address)),MemComponentString(m_mem_component));
 }
 
 void
@@ -1412,7 +1447,7 @@ CacheCntlr::retrieveCacheBlock(IntPtr address, Byte* data_buf, ShmemPerfModel::T
 SharedCacheBlockInfo*
 CacheCntlr::insertCacheBlock(IntPtr address, CacheState::cstate_t cstate, Byte* data_buf, core_id_t requester, ShmemPerfModel::Thread_t thread_num)
 {
-MYLOG("insertCacheBlock l%d @ %lx as %c (now %c)", m_mem_component, address, CStateString(cstate), CStateString(getCacheState(address)));
+MYLOG("insertCacheBlock l%d=%s  @ %lx as %c (now %c)", m_mem_component,MemComponentString(m_mem_component), address, CStateString(cstate), CStateString(getCacheState(address)));
    bool eviction;
    IntPtr evict_address;
    SharedCacheBlockInfo evict_block_info;
@@ -1433,7 +1468,7 @@ MYLOG("insertCacheBlock l%d @ %lx as %c (now %c)", m_mem_component, address, CSt
 
    if (m_next_cache_cntlr && !m_perfect)
       m_next_cache_cntlr->notifyPrevLevelInsert(m_core_id_master, m_mem_component, address);
-MYLOG("insertCacheBlock l%d local done", m_mem_component);
+MYLOG("insertCacheBlock l%d name=%s local done", m_mem_component,MemComponentString(m_mem_component));
 
 
    if (eviction)
@@ -1572,17 +1607,17 @@ MYLOG("evict INV %lx", evict_address);
       }
 
       LOG_ASSERT_ERROR(getCacheState(evict_address) == CacheState::INVALID, "Evicted address did not become invalid, now in state %s", CStateString(getCacheState(evict_address)));
-      MYLOG("insertCacheBlock l%d evict done", m_mem_component);
+      MYLOG("insertCacheBlock l%d=%s evict done", m_mem_component,MemComponentString(m_mem_component));
    }
 
-   MYLOG("insertCacheBlock l%d end", m_mem_component);
+   MYLOG("insertCacheBlock l%d=%s end", m_mem_component,MemComponentString(m_mem_component));
    return cache_block_info;
 }
 
 std::pair<SubsecondTime, bool>
 CacheCntlr::updateCacheBlock(IntPtr address, CacheState::cstate_t new_cstate, Transition::reason_t reason, Byte* out_buf, ShmemPerfModel::Thread_t thread_num)
 {
-   MYLOG("updateCacheBlock");
+   MYLOG("updateCacheBlock mem=%s",MemComponentString(m_mem_component));
    LOG_ASSERT_ERROR(new_cstate < CacheState::NUM_CSTATE_STATES, "Invalid new cstate %u", new_cstate);
 
    /* first, propagate the update to the previous levels. they will write modified data back to us when needed */
@@ -1752,7 +1787,7 @@ MYLOG(" ");
    // TODO: should we update access counter?
 
    if (m_master->m_evicting_buf && (address == m_master->m_evicting_address)) {
-      MYLOG("writing to evict buffer %lx", address);
+      MYLOG("writing to evict buffer %lx mem=%s", address,MemComponentString(m_mem_component));
 assert(offset==0);
 assert(data_length==getCacheBlockSize());
       if (data_buf)
