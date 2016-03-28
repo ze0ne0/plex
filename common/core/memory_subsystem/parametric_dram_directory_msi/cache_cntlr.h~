@@ -294,7 +294,7 @@ namespace ParametricDramDirectoryMSI
 bool operationPermissibleinFlexCache(IntPtr address, Core::mem_op_t mem_op_type,bool isShared,bool isFlexOp, CacheBlockInfo **cache_block_info = NULL);
 
 SharedCacheBlockInfo*
- getFlexCacheBlockInfo(IntPtr address,bool isShared,bool isFlexOp);
+CacheCntlr::getFlexCacheBlockInfo(IntPtr address,bool isShared,bool isFlexOp);
 
 //--------------------------------------------------------------------------------------------------------------
          void copyDataFromNextLevel(Core::mem_op_t mem_op_type, IntPtr address, bool modeled, SubsecondTime t_start);
