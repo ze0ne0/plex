@@ -68,7 +68,7 @@ class Cache : public CacheBase
             access_t access_type, Byte* buff, UInt32 bytes, SubsecondTime now, bool update_replacement);
       void insertSingleLine(IntPtr addr, Byte* fill_buff,
             bool* eviction, IntPtr* evict_addr,
-            CacheBlockInfo* evict_block_info, Byte* evict_buff, SubsecondTime now, CacheCntlr *cntlr = NULL);
+            CacheBlockInfo* evict_block_info, Byte* evict_buff, SubsecondTime now,bool isShared=false,CacheCntlr *cntlr = NULL);
 
 
       CacheBlockInfo* peekSingleLine(IntPtr addr,bool isShared=false,bool isFlexOp=false);

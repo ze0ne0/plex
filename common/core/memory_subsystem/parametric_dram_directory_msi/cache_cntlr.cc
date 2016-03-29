@@ -1304,8 +1304,20 @@ CacheCntlr::operationPermissibleinCache(
    if (cache_block_info != NULL)
 	  *cache_block_info = block_info;
 	 
+
+	
    bool cache_hit = false;
    CacheState::cstate_t cstate = getCacheState(block_info);
+
+	if(block_info)
+	{
+		VERI_LOG("oppermissible: non-null block info state:%c",CStateString(cstate));
+	}
+	else
+	{
+		VERI_LOG("oppermissible: Null block info state:%c",CStateString(cstate));
+	}
+
 
    switch (mem_op_type)
    {
@@ -1331,6 +1343,7 @@ CacheCntlr::operationPermissibleinFlexCache(IntPtr address, Core::mem_op_t mem_o
 CacheBlockInfo **cache_block_info)
 {
    CacheBlockInfo *block_info = getFlexCacheBlockInfo(address,isShared,isFlexOp);
+
    // returns NULL if block doesn't exist in cache
    if (cache_block_info != NULL)
 	  *cache_block_info = block_info;
@@ -1468,17 +1481,20 @@ CacheCntlr::retrieveCacheBlock(IntPtr address, Byte* data_buf, ShmemPerfModel::T
 SharedCacheBlockInfo*
 CacheCntlr::insertCacheBlock(IntPtr address, CacheState::cstate_t cstate, Byte* data_buf, core_id_t requester, ShmemPerfModel::Thread_t thread_num)
 {
-VERI_LOG("insertCacheBlock l%d=%s  @ %x as %c (now %c)", m_mem_component,MemComponentString(m_mem_component), address, CStateString(cstate), CStateString(getCacheState(address)));
+VERI_LOG("insertCacheBlock in %s  @ %x as %c (now %c)",MemComponentString(m_mem_component), address, CStateString(cstate), CStateString(getCacheState(address)));
    bool eviction;
    IntPtr evict_address;
    SharedCacheBlockInfo evict_block_info;
    Byte evict_buf[getCacheBlockSize()];
-
+   bool isShared;
    LOG_ASSERT_ERROR(getCacheState(address) == CacheState::INVALID, "we already have this line, can't add it again");
 
-   m_master->m_cache->insertSingleLine(address, data_buf,
-         &eviction, &evict_address, &evict_block_info, evict_buf,
-         getShmemPerfModel()->getElapsedTime(thread_num), this);
+//---------------------------Shared cache or not
+	isShared=MemComponent::L2_CACHE == m_mem_component;
+//-----------------------------------------------------------------
+
+   m_master->m_cache->insertSingleLine(address, data_buf,&eviction, &evict_address, &evict_block_info, evict_buf,
+         getShmemPerfModel()->getElapsedTime(thread_num),isShared,this);
    SharedCacheBlockInfo* cache_block_info = setCacheState(address, cstate);
 
    if (Sim()->getInstrumentationMode() == InstMode::CACHE_ONLY)

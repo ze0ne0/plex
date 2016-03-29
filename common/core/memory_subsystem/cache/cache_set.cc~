@@ -1,5 +1,6 @@
 #include "cache_set.h"
 #include "cache_set_lru.h"
+/*
 #include "cache_set_mru.h"
 #include "cache_set_nmru.h"
 #include "cache_set_nru.h"
@@ -7,6 +8,7 @@
 #include "cache_set_random.h"
 #include "cache_set_round_robin.h"
 #include "cache_set_srrip.h"
+*/
 #include "cache_base.h"
 #include "log.h"
 #include "simulator.h"
@@ -150,6 +152,37 @@ CacheSet::insert(CacheBlockInfo* cache_block_info, Byte* fill_buff, bool* evicti
       memcpy(&m_blocks[index * m_blocksize], (void*) fill_buff, m_blocksize);
 }
 
+
+void
+CacheSet::insertFlex(CacheBlockInfo* cache_block_info, Byte* fill_buff, bool* eviction, CacheBlockInfo* evict_block_info, Byte* evict_buff,bool *isSubWay,bool ifLeader,bool isShared,CacheCntlr *cntlr)
+{
+   // This replacement strategy does not take into account the fact that
+   // cache blocks can be voluntarily flushed or invalidated due to another write request
+   const UInt32 index = getReplacementIndexFlex(cntlr,isSubWay);
+   assert(index < m_associativity);
+
+   assert(eviction != NULL);
+
+   if (m_cache_block_info_array[index]->isValid())
+   {
+      *eviction = true;
+      // FIXME: This is a hack. I dont know if this is the best way to do
+      evict_block_info->clone(m_cache_block_info_array[index]);
+      if (evict_buff != NULL && m_blocks != NULL)
+         memcpy((void*) evict_buff, &m_blocks[index * m_blocksize], m_blocksize);
+   }
+   else
+   {
+      *eviction = false;
+   }
+
+   // FIXME: This is a hack. I dont know if this is the best way to do
+   m_cache_block_info_array[index]->clone(cache_block_info);
+
+   if (fill_buff != NULL && m_blocks != NULL)
+      memcpy(&m_blocks[index * m_blocksize], (void*) fill_buff, m_blocksize);
+}
+
 char*
 CacheSet::getDataPtr(UInt32 line_index, UInt32 offset)
 {
@@ -165,13 +198,13 @@ CacheSet::createCacheSet(String cfgname, core_id_t core_id,
    CacheBase::ReplacementPolicy policy = parsePolicyType(replacement_policy);
    switch(policy)
    {
-      case CacheBase::ROUND_ROBIN:
+ /*     case CacheBase::ROUND_ROBIN:
          return new CacheSetRoundRobin(cache_type, associativity, blocksize,ifLeader);
-
+*/
       case CacheBase::LRU:
       case CacheBase::LRU_QBS:
          return new CacheSetLRU(cache_type, associativity, blocksize, dynamic_cast<CacheSetInfoLRU*>(set_info), getNumQBSAttempts(policy, cfgname, core_id),ifLeader);
-
+/*
 
       case CacheBase::NRU:
          return new CacheSetNRU(cache_type, associativity, blocksize,ifLeader);
@@ -191,7 +224,7 @@ CacheSet::createCacheSet(String cfgname, core_id_t core_id,
 
       case CacheBase::RANDOM:
          return new CacheSetRandom(cache_type, associativity, blocksize,ifLeader);
-
+*/
       default:
          LOG_PRINT_ERROR("Unrecognized Cache Replacement Policy: %i",
                policy);

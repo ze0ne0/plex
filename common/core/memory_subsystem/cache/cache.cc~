@@ -207,33 +207,50 @@ void
 Cache::insertSingleLine(IntPtr addr, Byte* fill_buff,
       bool* eviction, IntPtr* evict_addr,
       CacheBlockInfo* evict_block_info, Byte* evict_buff,
-      SubsecondTime now, CacheCntlr *cntlr)
+      SubsecondTime now,bool isShared,CacheCntlr *cntlr)
 {
    IntPtr tag;
    UInt32 set_index;
+   int module_index;
+   bool isLeader;
+
    splitAddress(addr, tag, set_index);
 
    CacheBlockInfo* cache_block_info = CacheBlockInfo::create(m_cache_type);
    cache_block_info->setTag(tag);
 
-   m_sets[set_index]->insert(cache_block_info, fill_buff,
-         eviction, evict_block_info, evict_buff, cntlr);
-   *evict_addr = tagToAddress(evict_block_info->getTag());
+	if(isShared)
+	{
+		 module_index=getModuleIndex(set_index);
+		 isLeader=m_sets[set_index]->isLeaderSet();
 
-   if (m_fault_injector) {
-      // NOTE: no callback is generated for read of evicted data
-      UInt32 line_index = -1;
-      __attribute__((unused)) CacheBlockInfo* res = m_sets[set_index]->find(tag, &line_index);
-      LOG_ASSERT_ERROR(res != NULL, "Inserted line no longer there?");
+		 VERI_LOG("FLEXOP_insert: %d  module:%d ",set_index,module_index);
+	
+		//-------------------------------------------------------
+	}
+	else
+	{
+		   m_sets[set_index]->insert(cache_block_info,fill_buff,eviction, evict_block_info, evict_buff,cntlr);
 
-      m_fault_injector->postWrite(addr, set_index * m_associativity + line_index, m_sets[set_index]->getBlockSize(), (Byte*)m_sets[set_index]->getDataPtr(line_index, 0), now);
-   }
+		   *evict_addr = tagToAddress(evict_block_info->getTag());
 
-   #ifdef ENABLE_SET_USAGE_HIST
-   ++m_set_usage_hist[set_index];
-   #endif
+		   if (m_fault_injector) {
+		      // NOTE: no callback is generated for read of evicted data
+		      UInt32 line_index = -1;
+		      __attribute__((unused)) CacheBlockInfo* res = m_sets[set_index]->find(tag, &line_index);
+		      LOG_ASSERT_ERROR(res != NULL, "Inserted line no longer there?");
 
-   delete cache_block_info;
+		      m_fault_injector->postWrite(addr, set_index * m_associativity + line_index, m_sets[set_index]->getBlockSize(), (Byte*)m_sets[set_index]->getDataPtr(line_index, 0), now);
+		   }
+
+		   #ifdef ENABLE_SET_USAGE_HIST
+		   ++m_set_usage_hist[set_index];
+		   #endif
+
+		   delete cache_block_info;
+
+	}
+
 }
 
 
@@ -242,10 +259,11 @@ CacheBlockInfo*
 Cache::peekSingleLine(IntPtr addr,bool isShared,bool isFlexOp)
 {
    IntPtr tag;
-   UInt32 set_index;
+   UInt32 set_index,line_index;
    int module_index;	
    splitAddress(addr, tag, set_index);
    bool isLeader;
+   CacheBlockInfo* block_info=NULL;
 
 	if(isShared & isFlexOp)
 	{
@@ -253,9 +271,19 @@ Cache::peekSingleLine(IntPtr addr,bool isShared,bool isFlexOp)
 		 module_index=getModuleIndex(set_index);
 		 isLeader=m_sets[set_index]->isLeaderSet();
 
-		 PRAK_LOG("FLEXOP set_: %d  module:%d ",set_index,module_index);
+		 VERI_LOG("FLEXOP_peek_single: %d  module:%d ",set_index,module_index);
 
-		return m_sets[set_index]->findFlex(tag,isSubWayOn[module_index],isLeader,isShared,isFlexOp,module_index);
+		 block_info=m_sets[set_index]->findFlex(tag,isSubWayOn[module_index],isLeader,isShared,isFlexOp,module_index,&line_index);
+
+		//-----------------INCREMENT HITS
+			if(block_info!=NULL)
+			{
+				L2Hits[module_index][line_index]=L2Hits[module_index][line_index] + 1;
+			}
+		
+		//---------------------------------------
+
+		return block_info;
 		
 	}
 	else

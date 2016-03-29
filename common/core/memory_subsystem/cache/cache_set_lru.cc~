@@ -141,7 +141,7 @@ CacheSetLRU::getReplacementIndexFlex(CacheCntlr *cntlr,bool * isSubWay)
          // Mark our newly-inserted line as most-recently used
          moveToMRUFlex(index,isSubWay);
          m_set_info->incrementAttempt(attempt);
-	 VERI_LOG("replacement_index:%d",index);
+	VERI_LOG("replacement_index:%d",index);
          return index;
       }
    }
