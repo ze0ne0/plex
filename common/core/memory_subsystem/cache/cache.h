@@ -72,7 +72,7 @@ class Cache : public CacheBase
       CacheBlockInfo* peekSingleLine(IntPtr addr,bool isShared=false,bool isFlexOp=false);	//done
 
       CacheBlockInfo* accessSingleLine(IntPtr addr,
-            access_t access_type, Byte* buff, UInt32 bytes, SubsecondTime now, bool update_replacement);
+            access_t access_type, Byte* buff, UInt32 bytes, SubsecondTime now, bool update_replacement);//no need
 
 
       CacheBlockInfo* peekBlock(UInt32 set_index, UInt32 way) const { return m_sets[set_index]->peekBlock(way); }//not done

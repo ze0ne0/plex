@@ -119,15 +119,6 @@ Core::Core(SInt32 id)
    m_performance_model = PerformanceModel::create(this);
 
 
-	reconfigurator= new Dyn_reconf();
-	if(reconfigurator==NULL)
-	{
-		PRAK_LOG("Can't initialize dyn_reconf\n");
-	}
-	else
-	{
-		PRAK_LOG("Initialized dyn_reconf\n");		
-	}
 
 	PRAK_LOG("Core construtor ends here");
 }
@@ -137,7 +128,6 @@ Core::~Core()
 //-------------PRAK
 	fclose(getFileptr());
 	PRAK_LOG("Count:%lld core:%d \n",reconfigurator->getInstructionCount(),m_core_id);
-	PRAK_LOG("m: Count:%lld core:%d \n",m_instructions,m_core_id);
 	
 //-------------------------------------
 
@@ -153,10 +143,7 @@ Core::~Core()
       delete m_clock_skew_minimization_client;
    delete m_network;
 
-	if(reconfigurator)		
-	{	PRAK_LOG("Deleting reconfigurator");
-		delete reconfigurator;
-	}
+	
 }
 
 void Core::enablePerformanceModels()
@@ -181,7 +168,6 @@ Core::countInstructions(IntPtr address, UInt32 count)
    bool check_rescheduled = false;
 
    m_instructions += count;
-		PRAK_LOG("CountInstruct core:%lld",m_instructions);
    if (m_bbv.sample())
       m_bbv.count(address, count);
    m_performance_model->countInstructions(address, count);
@@ -272,7 +258,7 @@ Core::readInstructionMemory(IntPtr address, UInt32 instruction_size)
 {
    LOG_PRINT("Instruction: Address(0x%x), Size(%u), Start READ",
            address, instruction_size);
-		//PRAK_LOG("Core CALLING ridi");
+
 //------------PRAK------------
 	p_count+=1;
 	reconfigurator->incrementCount();

@@ -28,14 +28,33 @@ CoreManager::CoreManager()
       m_cores.push_back(new Core(i));
 	PRAK_LOG("STARTING CORE %d \n",i);
    }
+
+
+	reconfigurator= new Dyn_reconf();
+	if(reconfigurator==NULL)
+	{
+		PRAK_LOG("Can't initialize dyn_reconf\n");
+	}
+	else
+	{
+		PRAK_LOG("Initialized dyn_reconf\n");		
+	}
+
    PRAK_LOG("Finished CoreManager Constructor.");
    LOG_PRINT("Finished CoreManager Constructor.");
 }
 
 CoreManager::~CoreManager()
 {
+	PRAK_LOG("Count:%lld ",reconfigurator->getInstructionCount());
+	if(reconfigurator)		
+	{	PRAK_LOG("Deleting reconfigurator");
+		delete reconfigurator;
+	}
+
    for (std::vector<Core *>::iterator i = m_cores.begin(); i != m_cores.end(); i++)
       delete *i;
+	
 
    delete m_core_tls;
    delete m_thread_type_tls;

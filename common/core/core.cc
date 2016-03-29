@@ -119,15 +119,6 @@ Core::Core(SInt32 id)
    m_performance_model = PerformanceModel::create(this);
 
 
-	reconfigurator= new Dyn_reconf();
-	if(reconfigurator==NULL)
-	{
-		PRAK_LOG("Can't initialize dyn_reconf\n");
-	}
-	else
-	{
-		PRAK_LOG("Initialized dyn_reconf\n");		
-	}
 
 	PRAK_LOG("Core construtor ends here");
 }
@@ -136,7 +127,7 @@ Core::~Core()
 {
 //-------------PRAK
 	fclose(getFileptr());
-	PRAK_LOG("Count:%lld core:%d \n",reconfigurator->getInstructionCount(),m_core_id);
+	
 	
 //-------------------------------------
 
@@ -152,10 +143,7 @@ Core::~Core()
       delete m_clock_skew_minimization_client;
    delete m_network;
 
-	if(reconfigurator)		
-	{	PRAK_LOG("Deleting reconfigurator");
-		delete reconfigurator;
-	}
+	
 }
 
 void Core::enablePerformanceModels()
@@ -273,7 +261,7 @@ Core::readInstructionMemory(IntPtr address, UInt32 instruction_size)
 
 //------------PRAK------------
 	p_count+=1;
-	reconfigurator->incrementCount();
+	
 	//fprintf(fptr,"0x%x:%lld\n",address,p_count);
 
 //------------------------------
