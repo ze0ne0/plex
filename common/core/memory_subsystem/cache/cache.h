@@ -63,17 +63,19 @@ class Cache : public CacheBase
 
       Lock& getSetLock(IntPtr addr);
 
-      bool invalidateSingleLine(IntPtr addr);
-      CacheBlockInfo* accessSingleLine(IntPtr addr,
-            access_t access_type, Byte* buff, UInt32 bytes, SubsecondTime now, bool update_replacement);
+      bool invalidateSingleLine(IntPtr addr); //done
+
       void insertSingleLine(IntPtr addr, Byte* fill_buff,
             bool* eviction, IntPtr* evict_addr,
-            CacheBlockInfo* evict_block_info, Byte* evict_buff, SubsecondTime now,bool isShared=false,CacheCntlr *cntlr = NULL);
+            CacheBlockInfo* evict_block_info, Byte* evict_buff, SubsecondTime now,bool isShared=false,CacheCntlr *cntlr = NULL);  //done
+
+      CacheBlockInfo* peekSingleLine(IntPtr addr,bool isShared=false,bool isFlexOp=false);	//done
+
+      CacheBlockInfo* accessSingleLine(IntPtr addr,
+            access_t access_type, Byte* buff, UInt32 bytes, SubsecondTime now, bool update_replacement);
 
 
-      CacheBlockInfo* peekSingleLine(IntPtr addr,bool isShared=false,bool isFlexOp=false);
-
-      CacheBlockInfo* peekBlock(UInt32 set_index, UInt32 way) const { return m_sets[set_index]->peekBlock(way); }
+      CacheBlockInfo* peekBlock(UInt32 set_index, UInt32 way) const { return m_sets[set_index]->peekBlock(way); }//not done
 
 
 	cache_t getType()

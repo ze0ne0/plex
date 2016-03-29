@@ -1139,7 +1139,7 @@ CacheCntlr::walkUsageBits()
       {
          for(UInt32 way = 0; way < m_master->m_cache->getAssociativity(); ++way)
          {
-            CacheBlockInfo *block_info = m_master->m_cache->peekBlock(set_index, way);
+            CacheBlockInfo *block_info = m_master->m_cache->peekBlock(set_index,way);
             if (block_info->isValid() && !block_info->hasOption(CacheBlockInfo::WARMUP))
             {
                Sim()->getConfig()->getCacheEfficiencyCallbacks().call_notify_evict(true, block_info->getOwner(), 0, block_info->getUsage(), getCacheBlockSize() >> CacheBlockInfo::BitsUsedOffset);

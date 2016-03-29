@@ -34,7 +34,43 @@ CacheSetLRU::getReplacementIndex(CacheCntlr *cntlr)
          return i;
       }
    }
+//----------------------------------
 
+      UInt32 index = 0;
+      UInt8 max_bits = 0;
+      for (UInt32 i = 0; i < m_associativity; i++)
+      {
+	
+
+         if (m_lru_bits[i] > max_bits && isValidReplacement(i))
+         {
+            index = i;
+            max_bits = m_lru_bits[i];
+         }
+      }
+if(m_associativity==8)
+{
+VERI_LOG("I0=%d I1=%d I2=%d I3=%d I4=%d I5=%d I6=%d I7=%d index:%d=%d",m_lru_bits[0],m_lru_bits[1],m_lru_bits[2],m_lru_bits[3],m_lru_bits[4],m_lru_bits[5],m_lru_bits[6],m_lru_bits[7],index,m_lru_bits[index]);
+}
+else if(m_associativity==4)
+{
+	VERI_LOG("I0=%d I1=%d I2=%d I3=%d index:%d=%d",m_lru_bits[0],m_lru_bits[1],m_lru_bits[2],m_lru_bits[3],index,m_lru_bits[index]);
+}
+	moveToMRU(index);
+
+if(m_associativity==8)
+{
+VERI_LOG("I0=%d I1=%d I2=%d I3=%d I4=%d I5=%d I6=%d I7=%d index:%d=%d",m_lru_bits[0],m_lru_bits[1],m_lru_bits[2],m_lru_bits[3],m_lru_bits[4],m_lru_bits[5],m_lru_bits[6],m_lru_bits[7],index,m_lru_bits[index]);
+}
+else if(m_associativity==4)
+{
+	VERI_LOG("I0=%d I1=%d I2=%d I3=%d index:%d=%d",m_lru_bits[0],m_lru_bits[1],m_lru_bits[2],m_lru_bits[3],index,m_lru_bits[index]);
+}
+
+	return index;
+
+//-------------------------------------
+/*
    // Make m_num_attemps attempts at evicting the block at LRU position
    for(UInt8 attempt = 0; attempt < m_num_attempts; ++attempt)
    {
@@ -75,7 +111,7 @@ CacheSetLRU::getReplacementIndex(CacheCntlr *cntlr)
          return index;
       }
    }
-
+*/
    LOG_PRINT_ERROR("Should not reach here");
 }
 
@@ -83,34 +119,27 @@ UInt32
 CacheSetLRU::getReplacementIndexFlex(CacheCntlr *cntlr,bool * isSubWay)
 {
 
-	VERI_LOG("GETTING REPLACEMENT INDEX");
-   // First try to find an invalid block
+	VERI_LOG("getreplacementflex");
+ // First try to find an invalid block
    for (UInt32 i = 0; i < m_associativity; i++)
    {
-
-	VERI_LOG("index:%d lru:%d isON:%d",i,m_lru_bits[i],isSubWay[i]);
-	if(isSubWay[i]==false)
-	{
-		continue;
-	}
-
+      if(!isSubWay[i])
+	continue;
+	
       if (!m_cache_block_info_array[i]->isValid())
       {
          // Mark our newly-inserted line as most-recently used
          moveToMRUFlex(i,isSubWay);
-	VERI_LOG("replacement_index:%d",i);
          return i;
       }
    }
+//----------------------------------
 
-   // Make m_num_attemps attempts at evicting the block at LRU position
-   for(UInt8 attempt = 0; attempt < m_num_attempts; ++attempt)
-   {
       UInt32 index = 0;
       UInt8 max_bits = 0;
       for (UInt32 i = 0; i < m_associativity; i++)
       {
-	if(isSubWay[i]==false)
+	  if(!isSubWay[i])
 		continue;
 
          if (m_lru_bits[i] > max_bits && isValidReplacement(i))
@@ -119,36 +148,31 @@ CacheSetLRU::getReplacementIndexFlex(CacheCntlr *cntlr,bool * isSubWay)
             max_bits = m_lru_bits[i];
          }
       }
-      LOG_ASSERT_ERROR(index < m_associativity, "Error Finding LRU bits");
 
-      bool qbs_reject = false;
-      if (attempt < m_num_attempts - 1)
-      {
-         LOG_ASSERT_ERROR(cntlr != NULL, "CacheCntlr == NULL, QBS can only be used when cntlr is passed in");
-         qbs_reject = cntlr->isInLowerLevelCache(m_cache_block_info_array[index]);
-      }
+	if(m_associativity==8)
+	{
+	VERI_LOG("I0=%d I1=%d I2=%d I3=%d I4=%d I5=%d I6=%d I7=%d index:%d=%d",m_lru_bits[0],m_lru_bits[1],m_lru_bits[2],m_lru_bits[3],m_lru_bits[4],m_lru_bits[5],m_lru_bits[6],m_lru_bits[7],index,m_lru_bits[index]);
+	}
+	else if(m_associativity==4)
+	{
+		VERI_LOG("I0=%d I1=%d I2=%d I3=%d index:%d=%d",m_lru_bits[0],m_lru_bits[1],m_lru_bits[2],m_lru_bits[3],index,m_lru_bits[index]);
+	}
+		moveToMRU(index,isSubWay);
 
-      if (qbs_reject)
-      {
-         // Block is contained in lower-level cache, and we have more tries remaining.
-         // Move this block to MRU and try again
-         moveToMRUFlex(index,isSubWay);
-         cntlr->incrementQBSLookupCost();
-         continue;
-      }
-      else
-      {
-         // Mark our newly-inserted line as most-recently used
-         moveToMRUFlex(index,isSubWay);
-         m_set_info->incrementAttempt(attempt);
-	VERI_LOG("replacement_index:%d",index);
-         return index;
-      }
-   }
+	if(m_associativity==8)
+	{
+	VERI_LOG("I0=%d I1=%d I2=%d I3=%d I4=%d I5=%d I6=%d I7=%d index:%d=%d",m_lru_bits[0],m_lru_bits[1],m_lru_bits[2],m_lru_bits[3],m_lru_bits[4],m_lru_bits[5],m_lru_bits[6],m_lru_bits[7],index,m_lru_bits[index]);
+	}
+	else if(m_associativity==4)
+	{
+		VERI_LOG("I0=%d I1=%d I2=%d I3=%d index:%d=%d",m_lru_bits[0],m_lru_bits[1],m_lru_bits[2],m_lru_bits[3],index,m_lru_bits[index]);
+	}
+
+	return index;
+
+//-------------------------------------
 
    LOG_PRINT_ERROR("Should not reach here");
-
-
 }
 
 void

@@ -113,6 +113,7 @@ CacheSet::invalidate(IntPtr& tag)
 {
    for (SInt32 index = m_associativity-1; index >= 0; index--)
    {
+	
       if (m_cache_block_info_array[index]->getTag() == tag)
       {
          m_cache_block_info_array[index]->invalidate();

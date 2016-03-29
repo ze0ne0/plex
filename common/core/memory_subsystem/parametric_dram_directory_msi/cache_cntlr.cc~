@@ -1139,7 +1139,7 @@ CacheCntlr::walkUsageBits()
       {
          for(UInt32 way = 0; way < m_master->m_cache->getAssociativity(); ++way)
          {
-            CacheBlockInfo *block_info = m_master->m_cache->peekBlock(set_index, way);
+            CacheBlockInfo *block_info = m_master->m_cache->peekBlock(set_index,way);
             if (block_info->isValid() && !block_info->hasOption(CacheBlockInfo::WARMUP))
             {
                Sim()->getConfig()->getCacheEfficiencyCallbacks().call_notify_evict(true, block_info->getOwner(), 0, block_info->getUsage(), getCacheBlockSize() >> CacheBlockInfo::BitsUsedOffset);
@@ -1494,7 +1494,7 @@ VERI_LOG("insertCacheBlock in %s  @ %x as %c (now %c)",MemComponentString(m_mem_
 //-----------------------------------------------------------------
 
    m_master->m_cache->insertSingleLine(address, data_buf,&eviction, &evict_address, &evict_block_info, evict_buf,
-         getShmemPerfModel()->getElapsedTime(thread_num), this);
+         getShmemPerfModel()->getElapsedTime(thread_num),isShared,this);
    SharedCacheBlockInfo* cache_block_info = setCacheState(address, cstate);
 
    if (Sim()->getInstrumentationMode() == InstMode::CACHE_ONLY)

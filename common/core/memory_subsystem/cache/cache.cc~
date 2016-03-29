@@ -218,18 +218,65 @@ Cache::insertSingleLine(IntPtr addr, Byte* fill_buff,
 
    CacheBlockInfo* cache_block_info = CacheBlockInfo::create(m_cache_type);
    cache_block_info->setTag(tag);
+	
 
-	if(isShared)
+	if(isShared )
 	{
 		 module_index=getModuleIndex(set_index);
 		 isLeader=m_sets[set_index]->isLeaderSet();
 
+		if(!isLeader)
+		{
+		 m_sets[set_index]->insertFlex(cache_block_info,fill_buff,eviction, evict_block_info, evict_buff,isSubWayOn[module_index],isLeader,isShared,cntlr);
 		 VERI_LOG("FLEXOP_insert: %d  module:%d ",set_index,module_index);
+		*evict_addr = tagToAddress(evict_block_info->getTag());
+
+		   if (m_fault_injector) 
+		  {
+		      // NOTE: no callback is generated for read of evicted data
+		      UInt32 line_index = -1;
+		      __attribute__((unused)) CacheBlockInfo* res = m_sets[set_index]->find(tag, &line_index);
+		      LOG_ASSERT_ERROR(res != NULL, "Inserted line no longer there?");
+
+		    m_fault_injector->postWrite(addr, set_index * m_associativity + line_index, m_sets[set_index]->getBlockSize(), (Byte*)m_sets[set_index]->getDataPtr(line_index, 0), now);
+		   }
+
+		   #ifdef ENABLE_SET_USAGE_HIST
+		   ++m_set_usage_hist[set_index];
+		   #endif
+
+		   delete cache_block_info;
+
+		}
+		else
+		{
+		   m_sets[set_index]->insert(cache_block_info,fill_buff,eviction, evict_block_info, evict_buff,cntlr);
+		   *evict_addr = tagToAddress(evict_block_info->getTag());
+
+		   if (m_fault_injector) 
+		  {
+		      // NOTE: no callback is generated for read of evicted data
+		      UInt32 line_index = -1;
+		      __attribute__((unused)) CacheBlockInfo* res = m_sets[set_index]->find(tag, &line_index);
+		      LOG_ASSERT_ERROR(res != NULL, "Inserted line no longer there?");
+
+		    m_fault_injector->postWrite(addr, set_index * m_associativity + line_index, m_sets[set_index]->getBlockSize(), (Byte*)m_sets[set_index]->getDataPtr(line_index, 0), now);
+		   }
+
+		   #ifdef ENABLE_SET_USAGE_HIST
+		   ++m_set_usage_hist[set_index];
+		   #endif
+
+		   delete cache_block_info;
+		}
+
+		 
 	
 		//-------------------------------------------------------
 	}
 	else
 	{
+
 		   m_sets[set_index]->insert(cache_block_info,fill_buff,eviction, evict_block_info, evict_buff,cntlr);
 
 		   *evict_addr = tagToAddress(evict_block_info->getTag());
