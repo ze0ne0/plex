@@ -2,6 +2,7 @@
 #define __DYN_RECONF_H
 
 #include "fixed_types.h"
+#include "lock.h"
 
 class Dyn_reconf
 {
@@ -27,6 +28,7 @@ public:
 		IntPtr p_base_addr;
 		IntPtr p_last_base_addr;
 		Status state;				
+		Lock count_lock;
 	
 //	protected:
 };

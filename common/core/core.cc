@@ -64,7 +64,7 @@ Lock Core::m_global_core_lock;
 UInt64 Core::g_instructions_hpi_global = 0;
 UInt64 Core::g_instructions_hpi_global_callback = 0;
 
-Core::Core(SInt32 id)
+Core::Core(SInt32 id,Dyn_reconf *reconfig)
    : m_core_id(id)
    , m_dvfs_domain(Sim()->getDvfsManager()->getCoreDomain(id))
    , m_thread(NULL)
@@ -93,7 +93,7 @@ Core::Core(SInt32 id)
 
 //--------------PRAK
 
-	
+	reconfigurator=reconfig;
 	char filename[20];
 	
         sprintf(filename, "addr_%u.txt",m_core_id);
@@ -127,6 +127,7 @@ Core::~Core()
 {
 //-------------PRAK
 	fclose(getFileptr());
+	PRAK_LOG("core:%d instr_count:%lld",m_core_id,p_count);
 	
 	
 //-------------------------------------
@@ -261,7 +262,7 @@ Core::readInstructionMemory(IntPtr address, UInt32 instruction_size)
 
 //------------PRAK------------
 	p_count+=1;
-	
+	reconfigurator->incrementCount();
 	//fprintf(fptr,"0x%x:%lld\n",address,p_count);
 
 //------------------------------

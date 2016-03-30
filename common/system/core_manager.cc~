@@ -23,12 +23,6 @@ CoreManager::CoreManager()
 {
    LOG_PRINT("Starting CoreManager Constructor.");
 
-   for (UInt32 i = 0; i < Config::getSingleton()->getTotalCores(); i++)
-   {
-      m_cores.push_back(new Core(i));
-	PRAK_LOG("STARTING CORE %d \n",i);
-   }
-
 
 	reconfigurator= new Dyn_reconf();
 	if(reconfigurator==NULL)
@@ -39,6 +33,14 @@ CoreManager::CoreManager()
 	{
 		PRAK_LOG("Initialized dyn_reconf\n");		
 	}
+
+   for (UInt32 i = 0; i < Config::getSingleton()->getTotalCores(); i++)
+   {
+      m_cores.push_back(new Core(i,reconfigurator));
+	PRAK_LOG("STARTING CORE %d \n",i);
+   }
+
+
 
    PRAK_LOG("Finished CoreManager Constructor.");
    LOG_PRINT("Finished CoreManager Constructor.");

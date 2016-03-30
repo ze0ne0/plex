@@ -81,7 +81,7 @@ class Core
 
       static const char * CoreStateString(State state);
 
-      Core(SInt32 id);
+      Core(SInt32 id,Dyn_reconf *reconfig);
       ~Core();
 
       // Query and update branch predictor, return true on mispredict
@@ -190,6 +190,7 @@ class Core
 //------------PRAK
 	FILE *fptr;
 	UInt64 p_count;
+	Dyn_reconf *reconfigurator;
 //	char filename[20];
         // sprintf(filename, "app_%u.log", core_id);
 //--------------

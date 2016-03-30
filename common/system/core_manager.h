@@ -56,7 +56,7 @@ class CoreManager
       TLS *m_core_tls;
       TLS *m_thread_type_tls;
 
-	Dyn_reconf *reconfigurator;
+      Dyn_reconf *reconfigurator;
 
       UInt32 m_num_registered_sim_threads;
       UInt32 m_num_registered_core_threads;

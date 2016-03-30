@@ -179,7 +179,7 @@ Cache::accessSingleLine(IntPtr addr, access_t access_type,
 
    if (cache_block_info == NULL)
    {
-		PRAK_LOG("CAN'T ACCESS SINGLE LINE");
+	//	PRAK_LOG("CAN'T ACCESS SINGLE LINE");
 	   return NULL;
    }	
 

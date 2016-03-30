@@ -23,7 +23,9 @@ void Dyn_reconf:: processAddress(IntPtr address)
 
 void Dyn_reconf:: incrementCount()
 {
+	count_lock.acquire();
 	p_instruction_count+=1;
+	count_lock.release();
 }
 
 
