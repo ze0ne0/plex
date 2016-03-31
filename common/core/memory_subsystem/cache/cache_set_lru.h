@@ -35,6 +35,7 @@ class CacheSetLRU : public CacheSet
 
       virtual UInt32 getReplacementIndex(CacheCntlr *cntlr);
       virtual UInt32 getReplacementIndexFlex(CacheCntlr *cntlr,bool *isSubWay);
+      virtual UInt32 findTransReplacemnt(UInt32 min_way,bool *isSubWay);		
 
       void updateReplacementIndex(UInt32 accessed_index);
 

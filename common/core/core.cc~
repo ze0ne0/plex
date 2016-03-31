@@ -121,7 +121,9 @@ Core::Core(SInt32 id,Dyn_reconf *reconfig)
 	reconfigurator=reconfig;
 	if(m_core_id==0)
 	{
-		reconfigurator->setCache(m_memory_manager->getCache(MemComponent::L2_CACHE));
+		PRAK_LOG("CALLING GETCACHE");
+		reconfigurator->setCache(m_memory_manager->getCacheCntlrAt(0,MemComponent::L2_CACHE));
+		PRAK_LOG("DONE CALLING GETCACHE");
 	}
 
 	PRAK_LOG("Core construtor ends here");

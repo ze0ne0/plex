@@ -364,63 +364,25 @@ Cache::updateHits(Core::mem_op_t mem_op_type, UInt64 hits)
    }
 }
 
-//-----------------------------PRAK-LOG
-void
-Cache:: reconfigure()
+void 
+Cache:: insertSingleLineAt(UInt32 set_index,UInt32 insert_index,UInt32 replace_index,Byte* fill_buff,
+bool* eviction, IntPtr* evict_addr,
+            CacheBlockInfo* evict_block_info, Byte* evict_buff)
 {
-	PRAK_LOG("RECONFIGURING CACHE");
-	for(int x=0; x< p_num_modules;x++)
-	{
-		bool didChangeHappen=false;
-	//---------------------------------------------------------------------	
-		for(UInt32 v=W_min;v< m_associativity; v++)
-		{
-			if(isSubWayOn[x][v]==false)
-			{
-				if(L2Hits[x][v] > BETA)
-				{
-					didChangeHappen=true;
-					isSubWayOn[x][v]=true;
-					for(UInt32 e=2;e<=v-1;e++)
-					{
-						if(isSubWayOn[x][e]==false)
-						{
-							isSubWayOn[x][e]=true;
-						}	
-					}
-				}
-		
-			}
-		}	
-	//---------------------------------------------------------------------
-		if(didChangeHappen==false)
-		{
-			for(UInt32 v=m_associativity-1 ;v >= W_min; v--)
-			{
-				if(isSubWayOn[x][v]==true)
-				{
-					if(L2Hits[x][v] < ALPHA )
-					{
-						isSubWayOn[x][v]=false;
-						block_transfer(x,v,isSubWayOn[x]);
-					}
-					else
-					{
-						break;
-					}
-				}
-			}
-		}
-	//---------------------------------------------------------------------
-		
-	}
+      CacheBlockInfo **cache_block_info_array=m_sets[set_index]->getBlock_info_array();
+
+   CacheBlockInfo* cache_block_info= CacheBlockInfo::create(m_cache_type);
+
+   cache_block_info->clone(cache_block_info_array[insert_index]);
+
+   m_sets[set_index]->insertAt(replace_index,cache_block_info,fill_buff,eviction, evict_block_info, evict_buff);
+
+*evict_addr = tagToAddress(evict_block_info->getTag());
+delete cache_block_info;
+
 	
 }
 
-void
-Cache::block_transfer(UInt32 module_index,UInt32 block_index,bool *isSubWay)
-{
-	PRAK_LOG("block transfer called for mod=%d way=%d",module_index,block_index);
-}
+
 //---------------------------------------------------------------
 

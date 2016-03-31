@@ -60,6 +60,9 @@ class CacheSet
 
       void insert(CacheBlockInfo* cache_block_info, Byte* fill_buff, bool* eviction, CacheBlockInfo* evict_block_info, Byte* evict_buff, CacheCntlr *cntlr = NULL);
 
+
+	void insertAt(UInt32 index,CacheBlockInfo* cache_block_info,Byte* fill_buff,bool* eviction, CacheBlockInfo* evict_block_info, Byte* evict_buff);
+
       void insertFlex(CacheBlockInfo* cache_block_info, Byte* fill_buff, bool* eviction, CacheBlockInfo* evict_block_info, Byte* evict_buff,bool *isSubWay,bool ifLeader,bool isShared,CacheCntlr *cntlr = NULL);
 
       CacheBlockInfo* peekBlock(UInt32 way) const { return m_cache_block_info_array[way]; }
@@ -71,10 +74,14 @@ class CacheSet
 
       virtual UInt32 getReplacementIndexFlex(CacheCntlr *cntlr,bool *isSubWay) = 0;
 
+      virtual UInt32 findTransReplacemnt(UInt32 min_way,bool *isSubWay) = 0;	
+
       virtual void updateReplacementIndex(UInt32) = 0;
 
       bool isValidReplacement(UInt32 index);
 //---PRAK-LOG
+	CacheBlockInfo** getBlock_info_array(){ return  m_cache_block_info_array;}
+	
 	bool isLeaderSet()
 	{
 		return isLeader;

@@ -155,6 +155,43 @@ CacheSet::insert(CacheBlockInfo* cache_block_info, Byte* fill_buff, bool* evicti
 
 
 void
+CacheSet:: insertAt(UInt32 index,CacheBlockInfo* cache_block_info,Byte* fill_buff,bool* eviction, CacheBlockInfo* evict_block_info, Byte* evict_buff)
+{
+	
+   assert(index < m_associativity);
+
+   assert(eviction != NULL);
+
+   if (m_cache_block_info_array[index]->isValid())
+   {
+      *eviction = true;
+      evict_block_info->clone(m_cache_block_info_array[index]);
+      
+	if (evict_buff != NULL && m_blocks != NULL)
+        { memcpy((void*) evict_buff, &m_blocks[index * m_blocksize], m_blocksize);
+	}
+	else
+	{
+		PRAK_LOG("error copying inserAt");
+	}
+   }
+   else
+   {
+      *eviction = false;
+   }
+   m_cache_block_info_array[index]->clone(cache_block_info);
+
+   if (fill_buff != NULL && m_blocks != NULL)
+   {
+	   memcpy(&m_blocks[index * m_blocksize], (void*) fill_buff, m_blocksize);
+   }
+   else
+   {
+	PRAK_LOG("copying failed fill_buff insertAt");	
+   }		
+}
+
+void
 CacheSet::insertFlex(CacheBlockInfo* cache_block_info, Byte* fill_buff, bool* eviction, CacheBlockInfo* evict_block_info, Byte* evict_buff,bool *isSubWay,bool ifLeader,bool isShared,CacheCntlr *cntlr)
 {
    // This replacement strategy does not take into account the fact that

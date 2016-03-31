@@ -31,6 +31,9 @@ Cache::Cache(
 	if(cache_type==CacheBase::SHARED_CACHE)
 	{
 		PRAK_LOG("Allocating num_sets=%d assoc=%d block_size=%d",num_sets,associativity,cache_block_size);
+		W_min=2;
+		ALPHA=5;
+		BETA=55;
 
 		p_num_modules=-1;
 		p_sampling_ratio=64;
@@ -360,3 +363,26 @@ Cache::updateHits(Core::mem_op_t mem_op_type, UInt64 hits)
       m_num_hits += hits;
    }
 }
+
+void 
+Cache:: insertSingleLineAt(UInt32 set_index,UInt32 insert_index,UInt32 replace_index,Byte* fill_buff,
+bool* eviction, IntPtr* evict_addr,
+            CacheBlockInfo* evict_block_info, Byte* evict_buff)
+{
+      CacheBlockInfo **cache_block_info_array=m_sets[set_index]->getBlock_info_array();
+
+   CacheBlockInfo* cache_block_info= CacheBlockInfo::create(m_cache_type);
+
+   cache_block_info->clone(cache_block_info[insert_index]);
+
+   m_sets[set_index]->insertAt(replace_index,cache_block_info,fill_buff,eviction, evict_block_info, evict_buff);
+
+*evict_addr = tagToAddress(evict_block_info->getTag());
+delete cache_block_info;
+
+	
+}
+
+
+//---------------------------------------------------------------
+

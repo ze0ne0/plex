@@ -1,7 +1,7 @@
 #ifndef __DYN_RECONF_H
 #define __DYN_RECONF_H
 
-class Cache;
+class CacheCntlr;
 
 #include "fixed_types.h"
 #include "lock.h"
@@ -22,7 +22,7 @@ public:
 		void incrementCount();
 		void processAddress(IntPtr );
 		UInt64 getInstructionCount();
-		void setCache(Cache *c)
+		void setCache(CacheCntlr *c)
 		{
 			l2_cache=c;
 		}
@@ -35,7 +35,7 @@ public:
 		IntPtr p_last_base_addr;
 		Status state;				
 		Lock count_lock;
-		Cache *l2_cache;
+		CacheCntlr *l2_cache;
 	
 //	protected:
 };

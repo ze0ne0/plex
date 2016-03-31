@@ -22,10 +22,8 @@ namespace FastNehalem
          MemoryManager(Core* core, Network* network, ShmemPerfModel* shmem_perf_model);
          ~MemoryManager();
 
-	 virtual Cache* getCache(MemComponent::component_t mem_component)
-		{
-			return NULL;
-		}
+	
+	virtual CacheCntlr* getCacheCntlrAt(core_id_t core_id, MemComponent::component_t mem_component) { return NULL; }
 
          SubsecondTime coreInitiateMemoryAccessFast(
                bool use_icache,

@@ -415,6 +415,13 @@ SharedCacheBlockInfo*
          bool isInLowerLevelCache(CacheBlockInfo *block_info);
          void incrementQBSLookupCost();
 
+/*SharedCacheBlockInfo*/ void insertCacheBlockAt(UInt32 set_index,UInt32 insert_index,UInt32 replace_index);
+
+//------------------PRAK-LOG
+	virtual void reconfigure();
+	void block_transfer(UInt32 module_index,UInt32 max_way,UInt32 min_way,bool *isSubWay);
+//----------------------------------------
+
 
 	MemComponent::component_t getMemComponent()
 	{

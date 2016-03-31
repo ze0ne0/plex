@@ -35,11 +35,16 @@ class Cache : public CacheBase
 	int p_num_modules;   // flexiway number of modules: Q in paper
 	bool ** isSubWayOn;	// specify if any way of particular module is on or off
 	UInt64 ** L2Hits;	// Hit count for leader sets
+	UInt64  ALPHA;	
+	UInt64 BETA;	
+
 	int p_module_size;
 	int p_atds_per_module;
 	int p_sampling_ratio;
 	int p_total_atds;
 	UInt32 print_count;
+	UInt32 W_min;
+	
 //----------------PRAK-LOG-ENDS-HERE
 
       #ifdef ENABLE_SET_USAGE_HIST
@@ -98,6 +103,19 @@ class Cache : public CacheBase
       void updateCounters(bool cache_hit);
       void updateHits(Core::mem_op_t mem_op_type, UInt64 hits);
 
+void insertSingleLineAt(UInt32 set_index,UInt32 insert_index,UInt32 replace_index,Byte* fill_buff,bool* eviction, IntPtr* evict_addr,
+            CacheBlockInfo* evict_block_info, Byte* evict_buff);
+
+	CacheSet ** getSetPointer(){return m_sets;}
+	int getModuleSize(){return p_module_size;}
+	UInt32  getNumModules(){return p_num_modules;}
+	UInt32 getAssoc(){return m_associativity;}
+	UInt32 getW_min(){return W_min;}
+	UInt64 getAlpha(){return ALPHA;}
+	UInt64 getBeta(){return BETA;}
+	bool ** getSubWayMat(){return isSubWayOn;}
+	UInt64 ** getgetL2HitsMat(){return L2Hits;}
+	
       void enable() { m_enabled = true; }
       void disable() { m_enabled = false; }
 };

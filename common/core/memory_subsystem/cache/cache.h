@@ -103,11 +103,18 @@ class Cache : public CacheBase
       void updateCounters(bool cache_hit);
       void updateHits(Core::mem_op_t mem_op_type, UInt64 hits);
 
-//------------------PRAK-LOG
-	void reconfigure();
-	void block_transfer(UInt32 module_index,UInt32 block_index,bool *isSubWay);
-//----------------------------------------
+void insertSingleLineAt(UInt32 set_index,UInt32 insert_index,UInt32 replace_index,Byte* fill_buff,bool* eviction, IntPtr* evict_addr,
+            CacheBlockInfo* evict_block_info, Byte* evict_buff);
 
+	CacheSet ** getSetPointer(){return m_sets;}
+	int getModuleSize(){return p_module_size;}
+	int  getNumModules(){return p_num_modules;}
+	UInt32 getAssoc(){return m_associativity;}
+	UInt32 getW_min(){return W_min;}
+	UInt64 getAlpha(){return ALPHA;}
+	UInt64 getBeta(){return BETA;}
+	bool ** getSubWayMat(){return isSubWayOn;}
+	UInt64 ** getgetL2HitsMat(){return L2Hits;}
 	
       void enable() { m_enabled = true; }
       void disable() { m_enabled = false; }

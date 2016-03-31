@@ -26,6 +26,7 @@ namespace FastNehalem
 		{
 			return NULL;
 		}
+	virtual CacheCntlr* getCacheCntlrAt(core_id_t core_id, MemComponent::component_t mem_component) { return NULL; }
 
          SubsecondTime coreInitiateMemoryAccessFast(
                bool use_icache,

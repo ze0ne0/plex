@@ -66,7 +66,8 @@ namespace ParametricDramDirectoryMSI
 
          UInt64 getCacheBlockSize() const { return m_cache_block_size; }
 
-         Cache* getCache(MemComponent::component_t mem_component) {
+         virtual Cache* getCache(MemComponent::component_t mem_component) {
+		PRAK_LOG("GETCACHE CALLED");
               return m_cache_cntlrs[mem_component == MemComponent::LAST_LEVEL_CACHE ? MemComponent::component_t(m_last_level_cache) : mem_component]->getCache();
          }
          Cache* getL1ICache() { return getCache(MemComponent::L1_ICACHE); }

@@ -2282,6 +2282,219 @@ CacheCntlr::updateUncoreStatistics(HitWhere::where_t hit_where, SubsecondTime no
 }
 
 
+//-----------------------------PRAK-LOG
+void
+CacheCntlr:: reconfigure()
+{
+	int p_num_modules=m_master->m_cache->getNumModules();
+	UInt32 m_associativity=m_master->m_cache->getAssoc();
+	UInt32 W_min=m_master->m_cache->getW_min();
+	UInt64 ALPHA=m_master->m_cache->getAlpha();
+	UInt64 BETA=m_master->m_cache->getBeta();
+	bool ** isSubWayOn=m_master->m_cache->getSubWayMat();
+	UInt64 ** L2Hits=m_master->m_cache->getgetL2HitsMat();
+
+	UInt32 max=0,min=m_associativity-1;
+	
+	PRAK_LOG("RECONFIGURING CACHE");
+	for(int x=0; x< p_num_modules;x++)
+	{
+		bool didChangeHappen=false;
+	//---------------------------------------------------------------------	
+		for(UInt32 v=W_min;v< m_associativity; v++)
+		{
+			if(isSubWayOn[x][v]==false)
+			{
+				if(L2Hits[x][v] > BETA)
+				{
+					didChangeHappen=true;
+					isSubWayOn[x][v]=true;
+					for(UInt32 e=2;e<=v-1;e++)
+					{
+						if(isSubWayOn[x][e]==false)
+						{
+							isSubWayOn[x][e]=true;
+						}	
+					}
+				}
+		
+			}
+		}	
+	//---------------------------------------------------------------------
+		if(didChangeHappen==false)
+		{
+			for(UInt32 v=m_associativity-1 ;v >= W_min; v--)
+			{
+				if(isSubWayOn[x][v]==true)
+				{
+					if(L2Hits[x][v] < ALPHA )
+					{
+						isSubWayOn[x][v]=false;didChangeHappen=true;
+						//block_transfer(x,v,isSubWayOn[x]);
+						if(max < v) 
+							max=v;
+						if(min > v)
+							min=v;
+					}
+					else
+					{
+						break;
+					}
+				}
+			}
+			if(didChangeHappen==true)
+			{
+				block_transfer(x,max,min,isSubWayOn[x]);	
+			}
+		}
+	//---------------------------------------------------------------------
+		
+	}
+	
+}
+
+void
+CacheCntlr::block_transfer(UInt32 module_index,UInt32 max_way,UInt32 min_way,bool *isSubWay)
+{
+	int p_module_size=m_master->m_cache->getModuleSize();
+	UInt32 set_si=(module_index*p_module_size);
+	UInt32 set_fi=(module_index+1)*p_module_size;
+	UInt32 r_index;
+	CacheSet** m_sets=m_master->m_cache->getSetPointer();
+	for(UInt32 s=set_si;s<set_fi;s++)
+	{
+		//check if leader set
+
+		if(m_sets[s]->isLeaderSet()==true)
+		{ continue; }
+		
+		for(UInt32 v=max_way;v>=min_way;v--)
+		{
+			//check if not leader set
+			
+			r_index=m_sets[s]->findTransReplacemnt(min_way,isSubWay);
+			insertCacheBlockAt(s,v,r_index);
+			
+		}
+	}
+	
+	PRAK_LOG("block transfer called for mod=%d min_way=%d max_way=%d",module_index,min_way,max_way);
+
+}
+
+//----------------------------------------------------------
+void 
+CacheCntlr::insertCacheBlockAt(UInt32 set_index,UInt32 insert_index,UInt32 replace_index)
+{
+
+//VERI_LOG("insertCacheBlock in %s  @ %x as %c (now %c)",MemComponentString(m_mem_component), address, CStateString(cstate), CStateString(getCacheState(address)));
+
+   bool eviction;
+   IntPtr evict_address;
+   SharedCacheBlockInfo evict_block_info;
+   Byte evict_buf[getCacheBlockSize()];
+   Byte fill_buf[getCacheBlockSize()];
+
+
+m_master->m_cache->insertSingleLineAt(set_index,insert_index,replace_index,fill_buf,&eviction, &evict_address, &evict_block_info, evict_buf);
+
+
+
+//SharedCacheBlockInfo* cache_block_info = setCacheState(address, cstate);
+
+  
+//---------------------------------------------------------------------------------
+
+   if (eviction)
+   {
+	VERI_LOG("evicting @%x", evict_address);
+      CacheState::cstate_t old_state = evict_block_info.getCState();
+      VERI_LOG("evicting @%x (state %c)", evict_address, CStateString(old_state));
+      {
+         ScopedLock sl(getLock());
+         transition(
+            evict_address,
+            Transition::EVICT,
+            old_state,
+            CacheState::INVALID
+         );
+
+      }
+
+
+      LOG_PRINT("Eviction: addr(0x%x)", evict_address);
+/*
+
+      if (! m_master->m_prev_cache_cntlrs.empty()) {
+         ScopedLock sl(getLock());
+  //        propagate the update to the previous levels. they will write modified data back to our evict buffer when needed 
+         m_master->m_evicting_address = evict_address;
+         m_master->m_evicting_buf = evict_buf;
+
+         SubsecondTime latency = SubsecondTime::Zero();
+         for(CacheCntlrList::iterator it = m_master->m_prev_cache_cntlrs.begin(); it != m_master->m_prev_cache_cntlrs.end(); it++)
+            latency = getMax<SubsecondTime>(latency, (*it)->updateCacheBlock(evict_address, CacheState::INVALID, Transition::BACK_INVAL, NULL, thread_num).first);
+         getMemoryManager()->incrElapsedTime(latency, thread_num);
+         atomic_add_subsecondtime(stats.snoop_latency, latency);
+
+         m_master->m_evicting_address = 0;
+         m_master->m_evicting_buf = NULL;
+      }
+*/
+
+      /* now properly get rid of the evicted line */
+
+      if (m_perfect)
+      {
+         // Nothing to do in this case
+      }
+      else if (!m_coherent)
+      {
+         // Don't notify the next level, it may have already evicted the line itself and won't like our notifyPrevLevelEvict
+         // Make sure the line wasn't modified though (unless we're writethrough), else data would have been lost
+         if (!m_cache_writethrough)
+            LOG_ASSERT_ERROR(evict_block_info.getCState() != CacheState::MODIFIED, "Non-coherent cache is throwing away dirty data");
+      }
+      else if (m_master->m_dram_cntlr)
+      {
+         if (evict_block_info.getCState() == CacheState::MODIFIED)
+         {
+            SubsecondTime t_now = getShmemPerfModel()->getElapsedTime(ShmemPerfModel::_USER_THREAD);
+
+            if (m_master->m_dram_outstanding_writebacks)
+            {
+               ScopedLock sl(getLock());
+               // Delay if all evict buffers are full
+               SubsecondTime t_issue = m_master->m_dram_outstanding_writebacks->getStartTime(t_now);
+               getMemoryManager()->incrElapsedTime(t_issue - t_now, ShmemPerfModel::_USER_THREAD);
+            }
+
+            // Access DRAM
+            SubsecondTime dram_latency;
+            HitWhere::where_t hit_where;
+            boost::tie<HitWhere::where_t, SubsecondTime>(hit_where, dram_latency) = accessDRAM(Core::WRITE, evict_address, false, evict_buf);
+
+            // Occupy evict buffer
+            if (m_master->m_dram_outstanding_writebacks)
+            {
+               ScopedLock sl(getLock());
+               m_master->m_dram_outstanding_writebacks->getCompletionTime(t_now, dram_latency);
+            }
+         }
+      }
+     
+
+      LOG_ASSERT_ERROR(getCacheState(evict_address) == CacheState::INVALID, "Evicted address did not become invalid, now in state %s", CStateString(getCacheState(evict_address)));
+
+      VERI_LOG("insertCacheBlock l%d=%s evict done", m_mem_component,MemComponentString(m_mem_component));
+   }
+
+   VERI_LOG("insertCacheBlock l%d=%s end", m_mem_component,MemComponentString(m_mem_component));
+  // return cache_block_info;
+}
+
+
+
 /*****************************************************************************
  * utility functions
  *****************************************************************************/

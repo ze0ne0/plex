@@ -1,5 +1,5 @@
 #include "dyn_reconf.h"
-#include "cache.h"
+#include "cache_cntlr.h"
 
 
 Dyn_reconf::Dyn_reconf()

@@ -1,7 +1,7 @@
 #ifndef __DYN_RECONF_H
 #define __DYN_RECONF_H
 
-class Cache;
+class CacheCntlr;
 
 #include "fixed_types.h"
 #include "lock.h"
@@ -22,6 +22,10 @@ public:
 		void incrementCount();
 		void processAddress(IntPtr );
 		UInt64 getInstructionCount();
+		void setCache(CacheCntlr *c)
+		{
+			l2_cache=c;
+		}
 		Status getState();
 	private:
 		UInt64 p_instruction_count;

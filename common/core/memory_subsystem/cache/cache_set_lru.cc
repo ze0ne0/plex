@@ -175,6 +175,32 @@ CacheSetLRU::getReplacementIndexFlex(CacheCntlr *cntlr,bool * isSubWay)
    LOG_PRINT_ERROR("Should not reach here");
 }
 
+UInt32
+CacheSetLRU::findTransReplacemnt(UInt32 min_way,bool *isSubWay)
+{
+	UInt32 index=0;
+	 UInt8 max_bits=0;
+	for(UInt32 v=0;v < min_way;v++)
+	{
+		if(m_cache_block_info_array[v]->getCState() != CacheState::MODIFIED)
+		{
+			return v;
+		}
+	}
+
+	for(UInt32 v=0;v < min_way ;v++)
+	{
+		if(m_lru_bits[v] > max_bits)
+		{
+			max_bits=m_lru_bits[v];
+			index=v;
+		}
+	}
+	return index;
+	PRAK_LOG("Should not reach here");
+}
+
+
 void
 CacheSetLRU::updateReplacementIndex(UInt32 accessed_index)
 {
@@ -228,6 +254,7 @@ CacheSetInfoLRU::CacheSetInfoLRU(String name, String cfgname, core_id_t core_id,
       }
    }
 };
+
 
 CacheSetInfoLRU::~CacheSetInfoLRU()
 {
