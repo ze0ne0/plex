@@ -93,7 +93,7 @@ Core::Core(SInt32 id,Dyn_reconf *reconfig)
 
 //--------------PRAK
 
-	reconfigurator=reconfig;
+	
 	char filename[20];
 	
         sprintf(filename, "addr_%u.txt",m_core_id);
@@ -118,7 +118,13 @@ Core::Core(SInt32 id,Dyn_reconf *reconfig)
 
    m_performance_model = PerformanceModel::create(this);
 
-
+	reconfigurator=reconfig;
+	if(m_core_id==0)
+	{
+		PRAK_LOG("CALLING GETCACHE");
+		reconfigurator->setCache(m_memory_manager->getCache(MemComponent::L2_CACHE));
+		PRAK_LOG("DONE CALLING GETCACHE");
+	}
 
 	PRAK_LOG("Core construtor ends here");
 }

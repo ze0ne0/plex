@@ -42,8 +42,6 @@ class MemoryManagerBase
       {}
       virtual ~MemoryManagerBase() {}
 
-	 virtual Cache* getCache(MemComponent::component_t mem_component)=0;
-
       virtual HitWhere::where_t coreInitiateMemoryAccess(
             MemComponent::component_t mem_component,
             Core::lock_signal_t lock_signal,

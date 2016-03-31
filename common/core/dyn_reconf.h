@@ -1,6 +1,8 @@
 #ifndef __DYN_RECONF_H
 #define __DYN_RECONF_H
 
+class Cache;
+
 #include "fixed_types.h"
 #include "lock.h"
 
@@ -20,6 +22,10 @@ public:
 		void incrementCount();
 		void processAddress(IntPtr );
 		UInt64 getInstructionCount();
+		void setCache(Cache *c)
+		{
+			l2_cache=c;
+		}
 		Status getState();
 	private:
 		UInt64 p_instruction_count;
@@ -29,6 +35,7 @@ public:
 		IntPtr p_last_base_addr;
 		Status state;				
 		Lock count_lock;
+		Cache *l2_cache;
 	
 //	protected:
 };

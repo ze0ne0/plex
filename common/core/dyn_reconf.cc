@@ -1,4 +1,5 @@
 #include "dyn_reconf.h"
+#include "cache.h"
 
 
 Dyn_reconf::Dyn_reconf()
@@ -9,6 +10,7 @@ Dyn_reconf::Dyn_reconf()
 	p_base_addr=0;
 	p_last_base_addr=0;
 	state=STABLE;
+	l2_cache=NULL;
 }
 
 Dyn_reconf::~Dyn_reconf()
@@ -25,6 +27,12 @@ void Dyn_reconf:: incrementCount()
 {
 	count_lock.acquire();
 	p_instruction_count+=1;
+	if(p_instruction_count %20000 ==0)
+	{
+		PRAK_LOG("RECONFIGURATION INTERVAL REACHED");
+		l2_cache->reconfigure();
+		PRAK_LOG("RECONFIGURATION FINISHED");
+	}
 	count_lock.release();
 }
 

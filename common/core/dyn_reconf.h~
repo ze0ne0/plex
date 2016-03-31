@@ -1,6 +1,8 @@
 #ifndef __DYN_RECONF_H
 #define __DYN_RECONF_H
 
+class Cache;
+
 #include "fixed_types.h"
 #include "lock.h"
 
@@ -28,6 +30,8 @@ public:
 		IntPtr p_base_addr;
 		IntPtr p_last_base_addr;
 		Status state;				
+		Lock count_lock;
+		Cache *l2_cache;
 	
 //	protected:
 };

@@ -31,6 +31,9 @@ Cache::Cache(
 	if(cache_type==CacheBase::SHARED_CACHE)
 	{
 		PRAK_LOG("Allocating num_sets=%d assoc=%d block_size=%d",num_sets,associativity,cache_block_size);
+		W_min=2;
+		ALPHA=5;
+		BETA=55;
 
 		p_num_modules=-1;
 		p_sampling_ratio=64;
@@ -360,3 +363,64 @@ Cache::updateHits(Core::mem_op_t mem_op_type, UInt64 hits)
       m_num_hits += hits;
    }
 }
+
+//-----------------------------PRAK-LOG
+void
+Cache:: reconfigure()
+{
+	PRAK_LOG("RECONFIGURING CACHE");
+	for(int x=0; x< p_num_modules;x++)
+	{
+		bool didChangeHappen=false;
+	//---------------------------------------------------------------------	
+		for(UInt32 v=W_min;v< m_associativity; v++)
+		{
+			if(isSubWayOn[x][v]==false)
+			{
+				if(L2Hits[x][v] > BETA)
+				{
+					didChangeHappen=true;
+					isSubWayOn[x][v]=true;
+					for(UInt32 e=2;e<=v-1;e++)
+					{
+						if(isSubWayOn[x][e]==false)
+						{
+							isSubWayOn[x][e]=true;
+						}	
+					}
+				}
+		
+			}
+		}	
+	//---------------------------------------------------------------------
+		if(didChangeHappen==false)
+		{
+			for(UInt32 v=m_associativity-1 ;v >= W_min; v--)
+			{
+				if(isSubWayOn[x][v]==true)
+				{
+					if(L2Hits[x][v] < ALPHA )
+					{
+						isSubWayOn[x][v]=false;
+						block_transfer(x,v,isSubWayOn[x]);
+					}
+					else
+					{
+						break;
+					}
+				}
+			}
+		}
+	//---------------------------------------------------------------------
+		
+	}
+	
+}
+
+void
+Cache::block_transfer(UInt32 module_index,UInt32 block_index,bool *isSubWay)
+{
+	PRAK_LOG("block transfer called for mod=%d way=%d",module_index,block_index);
+}
+//---------------------------------------------------------------
+
