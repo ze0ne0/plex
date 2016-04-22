@@ -14,7 +14,7 @@
 
 // When debugging, it helps to be able to attach to the thread you would like to investigate directly,
 // instead of running the program from the beginning in GDB.
-//#define LOG_SIGSTOP_ON_ERROR
+#define LOG_SIGSTOP_ON_ERROR
 
 Log *Log::_singleton;
 
@@ -34,6 +34,7 @@ Log::Log(Config &config)
    getDisabledModules();
 
    _loggingEnabled = initIsLoggingEnabled();
+   _anyLoggingEnabled2 = initIsLoggingEnabled2();
    _anyLoggingEnabled = (!_enabledModules.empty()) || _loggingEnabled;
 
    assert(_singleton == NULL);
@@ -182,6 +183,19 @@ bool Log::initIsLoggingEnabled()
    try
    {
       return Sim()->getCfg()->getBool("log/enabled");
+   }
+   catch (...)
+   {
+      assert(false);
+      return false;
+   }
+}
+
+bool Log::initIsLoggingEnabled2()
+{
+   try
+   {
+      return Sim()->getCfg()->getBool("prak_model/prak/veri_log");
    }
    catch (...)
    {
