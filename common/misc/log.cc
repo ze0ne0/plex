@@ -229,7 +229,7 @@ void Log::getFile(core_id_t core_id, bool sim_thread, FILE **file, Lock **lock)
    {
       if (_systemFile == NULL)
       {
-printf("syslog called..\n");
+//printf("syslog called..\n");
          char filename[256];
          sprintf(filename, "system.log");
          _systemFile = fopen(formatFileName(filename).c_str(), "w");

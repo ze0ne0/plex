@@ -4,6 +4,8 @@
 class CacheCntlr;
 
 #include "fixed_types.h"
+#include "subsecond_time.h"
+#include "shmem_perf_model.h"
 #include "lock.h"
 
 class Dyn_reconf
@@ -26,6 +28,16 @@ public:
 		{
 			l2_cache=c;
 		}
+
+		void setShMemPerfModel(ShmemPerfModel* model)
+		{
+			m_shmem_perf_model=model;
+		}
+		ShmemPerfModel* getShMemPerfModel()
+		{
+			return m_shmem_perf_model;
+		}
+
 		Status getState();
 	private:
 		UInt64 p_instruction_count;
@@ -36,6 +48,9 @@ public:
 		Status state;				
 		Lock count_lock;
 		CacheCntlr *l2_cache;
+		SubsecondTime t_now,t_prev;
+	        ShmemPerfModel* m_shmem_perf_model;
+		
 	
 //	protected:
 };

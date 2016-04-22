@@ -225,11 +225,13 @@ Cache::insertSingleLine(IntPtr addr, Byte* fill_buff,
 
 	if(isShared )
 	{
+
 		 module_index=getModuleIndex(set_index);
 		 isLeader=m_sets[set_index]->isLeaderSet();
 
 		if(!isLeader)
 		{
+
 		 m_sets[set_index]->insertFlex(cache_block_info,fill_buff,eviction, evict_block_info, evict_buff,isSubWayOn[module_index],isLeader,isShared,cntlr);
 		 VERI_LOG("FLEXOP_insert: %d  module:%d ",set_index,module_index);
 		*evict_addr = tagToAddress(evict_block_info->getTag());
@@ -332,6 +334,17 @@ Cache::peekSingleLine(IntPtr addr,bool isShared,bool isFlexOp)
 			}
 		
 		//---------------------------------------
+
+		return block_info;
+		
+	}
+	else if(isShared==true && isFlexOp==false)
+	{
+		 module_index=getModuleIndex(set_index);
+		 isLeader=m_sets[set_index]->isLeaderSet();
+		 VERI_LOG("FLEXOP_peek_print: %d  module:%d ",set_index,module_index);
+
+		 block_info=m_sets[set_index]->findFlex(tag,isSubWayOn[module_index],isLeader,isShared,isFlexOp,module_index,&line_index);
 
 		return block_info;
 		

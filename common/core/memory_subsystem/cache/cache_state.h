@@ -32,13 +32,13 @@ class CacheState
       bool readable()
       {
 	 bool op=(cstate == MODIFIED) || (cstate == OWNED) || (cstate == SHARED) || (cstate == EXCLUSIVE);
-		VERI_LOG("READABLE:%d",op);
+		//VERI_LOG("READABLE:%d",op);
          return op; 
       }
       bool writable()
       {
 	bool op=(cstate == MODIFIED);
-	VERI_LOG("WRITABLE:%d",op);
+	//VERI_LOG("WRITABLE:%d",op);
          return op;
       }
 

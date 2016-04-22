@@ -11,6 +11,7 @@ Dyn_reconf::Dyn_reconf()
 	p_last_base_addr=0;
 	state=STABLE;
 	l2_cache=NULL;
+	t_prev=t_now=SubsecondTime::Zero();
 }
 
 Dyn_reconf::~Dyn_reconf()
@@ -29,11 +30,14 @@ void Dyn_reconf:: incrementCount()
 	p_instruction_count+=1;
 	if(p_instruction_count %20000 ==0)
 	{
+	        t_now = getShMemPerfModel()->getElapsedTime(ShmemPerfModel::_USER_THREAD);
+		PRAK_LOG("T_PREV:%llu  t:now:%llu",t_prev.getNS(),t_now.getNS());
 		PRAK_LOG("RECONFIGURATION INTERVAL REACHED");
 		l2_cache->reconfigure();
 		PRAK_LOG("RECONFIGURATION FINISHED");
 	}
 	count_lock.release();
+	t_prev=t_now;
 }
 
 

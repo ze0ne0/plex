@@ -95,15 +95,26 @@ CacheSet::findFlex(IntPtr tag,bool *isSubWay,bool ifLeader,bool isShared,bool is
 
 	   for (SInt32 index = m_associativity-1; index >= 0; index--)
 	   {
-		valid_access= ifLeader | isSubWay[index];
-		
-	      if (valid_access==true && m_cache_block_info_array[index]->getTag() == tag)
-	      {		
-			VERI_LOG("FLEXTAG hit on way:%d" ,index);
-		 if (line_index != NULL)
-		    *line_index = index;
-		 return (m_cache_block_info_array[index]);
+
+	      if(m_cache_block_info_array[index]->isValid())
+	      {
+			valid_access= ifLeader | isSubWay[index];
+			VERI_LOG("subway :%d is on/off:%d",index,isSubWay[index]);
+		      if (valid_access==true && m_cache_block_info_array[index]->getTag() == tag)
+		      {		
+				VERI_LOG("hit FLEXTAG :%x way:%d" ,m_cache_block_info_array[index]->getTag(),index);
+			 if (line_index != NULL)
+			    *line_index = index;
+			 return (m_cache_block_info_array[index]);
+		      }
+			else
+			VERI_LOG("way:%d FLEXTAG :%x" ,index,m_cache_block_info_array[index]->getTag());
 	      }
+		else
+		{
+			VERI_LOG("way:%d FLEXTAG :NULL" ,index);	
+			continue;
+		}
 	   }
 	   return NULL;	
 }
@@ -172,7 +183,7 @@ CacheSet:: insertAt(UInt32 index,CacheBlockInfo* cache_block_info,Byte* fill_buf
 	}
 	else
 	{
-		PRAK_LOG("error copying inserAt");
+		//PRAK_LOG("error copying inserAt");
 	}
    }
    else
@@ -187,7 +198,7 @@ CacheSet:: insertAt(UInt32 index,CacheBlockInfo* cache_block_info,Byte* fill_buf
    }
    else
    {
-	PRAK_LOG("copying failed fill_buff insertAt");	
+	//PRAK_LOG("copying failed fill_buff insertAt");	
    }		
 }
 

@@ -89,14 +89,19 @@ class Cache : public CacheBase
 	}
 	int getModuleIndex(UInt32 set_index)
 	{
-		int m_set_index=(int)set_index;
-		for(int i=0;i<p_num_modules;i++)
+		int m_set_index=set_index;
+		int i;
+		//VERI_LOG("set:%d",m_set_index);
+		for( i=0; i < p_num_modules;i++)
 		{
-			if(m_set_index <= p_module_size * (i+1) &&  m_set_index >= p_module_size *i )
+		//	VERI_LOG("set_i:%d set_f:%d",p_module_size * (i),p_module_size * (i+1));
+			if(m_set_index < p_module_size * (i+1) &&  m_set_index >= p_module_size * i )
 			{
+			//	VERI_LOG("mod:%d",i);
 				return i;
 			}
 		}
+VERI_LOG("set_i:%d set_f:%d returning -1 p:%d p_num:%d",p_module_size * (i),p_module_size * (i+1),p_module_size,p_num_modules);
 		return -1;
 	}
       // Update Cache Counters

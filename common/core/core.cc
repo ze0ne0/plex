@@ -123,6 +123,7 @@ Core::Core(SInt32 id,Dyn_reconf *reconfig)
 	{
 		PRAK_LOG("CALLING GETCACHE");
 		reconfigurator->setCache(m_memory_manager->getCacheCntlrAt(0,MemComponent::L2_CACHE));
+		reconfigurator->setShMemPerfModel(m_shmem_perf_model);
 		PRAK_LOG("DONE CALLING GETCACHE");
 	}
 

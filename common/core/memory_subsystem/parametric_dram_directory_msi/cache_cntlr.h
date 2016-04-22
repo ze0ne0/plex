@@ -303,8 +303,8 @@ SharedCacheBlockInfo*
          void doPrefetch(IntPtr prefetch_address, SubsecondTime t_start);
 
          // Cache meta-data operations
-         SharedCacheBlockInfo* getCacheBlockInfo(IntPtr address);
-         CacheState::cstate_t getCacheState(IntPtr address);
+         SharedCacheBlockInfo* getCacheBlockInfo(IntPtr address,bool print=false);
+         CacheState::cstate_t getCacheState(IntPtr address,bool print=false);
          CacheState::cstate_t getCacheState(CacheBlockInfo *cache_block_info);
          SharedCacheBlockInfo* setCacheState(IntPtr address, CacheState::cstate_t cstate);
 
