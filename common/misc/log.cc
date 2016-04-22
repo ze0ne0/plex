@@ -192,10 +192,13 @@ bool Log::initIsLoggingEnabled()
 }
 
 bool Log::initIsLoggingEnabled2()
-{
+{	bool f;
    try
    {
-      return Sim()->getCfg()->getBool("prak_model/prak/veri_log");
+	f=Sim()->getCfg()->getBool("prak_model/prak/veri_log");
+	printf("log:%d\n",f);
+      return f;
+
    }
    catch (...)
    {

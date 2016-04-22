@@ -157,7 +157,7 @@ class Log
 #define __PRAKLOG1_PRINT(err, file, line, ...)                               		\
    {                                                                    		\
          String module = Log::getSingleton()->getModule(file);     			\
-	 if (Log::getSingleton()->isLoggingEnabled())            		\
+	 if (Log::getSingleton()->isLoggingEnabled2())            		\
          {                                                              		\
             Log::getSingleton()->praklog(err, module.c_str(), line,1, __VA_ARGS__); 	\
          }  										\
