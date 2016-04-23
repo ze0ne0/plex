@@ -1642,33 +1642,6 @@ VERI_LOG("evicting @%x", evict_address);
       else
       {
          /* Send dirty block to directory */
-         UInt32 home_node_id = getHome(evict_address);
-         if (evict_block_info.getCState() == CacheState::MODIFIED)
-         {
-            // Send back the data also
-VERI_LOG("evict FLUSH %x", evict_address);
-            getMemoryManager()->sendMsg(PrL1PrL2DramDirectoryMSI::ShmemMsg::FLUSH_REP,
-                  MemComponent::LAST_LEVEL_CACHE, MemComponent::TAG_DIR,
-                  m_core_id /* requester */,
-                  home_node_id /* receiver */,
-                  evict_address,
-                  evict_buf, getCacheBlockSize(),
-                  HitWhere::UNKNOWN, NULL, thread_num);
-         }
-         else
-         {
-VERI_LOG("evict INV %x", evict_address);
-            LOG_ASSERT_ERROR(evict_block_info.getCState() == CacheState::SHARED || evict_block_info.getCState() == CacheState::EXCLUSIVE,
-                  "evict_address(0x%x), evict_state(%u)",
-                  evict_address, evict_block_info.getCState());
-            getMemoryManager()->sendMsg(PrL1PrL2DramDirectoryMSI::ShmemMsg::INV_REP,
-                  MemComponent::LAST_LEVEL_CACHE, MemComponent::TAG_DIR,
-                  m_core_id /* requester */,
-                  home_node_id /* receiver */,
-                  evict_address,
-                  NULL, 0,
-                  HitWhere::UNKNOWN, NULL, thread_num);
-         }
       }
 
       LOG_ASSERT_ERROR(getCacheState(evict_address) == CacheState::INVALID, "Evicted address did not become invalid, now in state %s", CStateString(getCacheState(evict_address)));
@@ -1860,8 +1833,8 @@ assert(data_length==getCacheBlockSize());
    } else {
       __attribute__((unused)) SharedCacheBlockInfo* cache_block_info = (SharedCacheBlockInfo*) m_master->m_cache->accessSingleLine(
          address + offset, Cache::STORE, data_buf, data_length, getShmemPerfModel()->getElapsedTime(thread_num), false);
-    //  LOG_ASSERT_ERROR(cache_block_info, "writethrough expected a hit at next-level cache but got miss");
-  //    LOG_ASSERT_ERROR(cache_block_info->getCState() == CacheState::MODIFIED, "Got writeback for non-MODIFIED line");
+      LOG_ASSERT_ERROR(cache_block_info, "writethrough expected a hit at next-level cache but got miss");
+      LOG_ASSERT_ERROR(cache_block_info->getCState() == CacheState::MODIFIED, "Got writeback for non-MODIFIED line");
    }
 
    if (m_cache_writethrough) {
@@ -2325,8 +2298,10 @@ CacheCntlr:: reconfigure()
 	UInt32 max=0,min=m_associativity-1;
 	
 	PRAK_LOG("RECONFIGURING CACHE");
+	VERI_LOG("RECONFIGURING CACHE");
 	for(int x=0; x< p_num_modules;x++)
-	{
+	{	max=0;
+		min=m_associativity-1;
 		bool didChangeHappen=false;
 		//---------------------------------------------------------------------	
 		for(UInt32 v=W_min;v< m_associativity; v++)
@@ -2358,11 +2333,12 @@ CacheCntlr:: reconfigure()
 					if(L2Hits[x][v] < ALPHA )
 					{
 						isSubWayOn[x][v]=false;
-						VERI_LOG("turned off mod:%d way :%d",x,v);
+						VERI_LOG("turned off mod:%d way :%d  max:%d min:%d",x,v,max,min);
 						didChangeHappen=true;
 						//block_transfer(x,v,isSubWayOn[x]);
 						if(max < v) 
 							max=v;
+
 						if(min > v)
 							min=v;
 					}
@@ -2372,12 +2348,17 @@ CacheCntlr:: reconfigure()
 					}
 				}
 			}
-			VERI_LOG("max:%d min:%d ",max,min);			
+//			VERI_LOG("max:%d min:%d ",max,min);			
 		}
 		//---------------------------------------------------------------------
+		for(UInt32 v=0 ;v < m_associativity; v++)
+		{
+			VERI_LOG("mod:%d max:%d min:%d way:%d isubway:%d",x,max,min,v,isSubWayOn[x][v]);			
+			PRAK_LOG("mod:%d max:%d min:%d way:%d isubway:%d",x,max,min,v,isSubWayOn[x][v]);			
+		}
 		if(didChangeHappen==true)
 		{	
-			block_transfer(x,max,min+1,isSubWayOn[x]);	
+			block_transfer(x,max,min,isSubWayOn[x]);	
 		}		
 	}
 	
@@ -2416,7 +2397,9 @@ VERI_LOG("block transfer called for mod=%d min_way=%d max_way=%d",module_index,m
 			{
 				//insert this block
 				insert_addr=m_master->m_cache->tagToAddress(cache_block_info->getTag());
-				VERI_LOG("insert blocktag :%x from module:%d set:%d way:%d",cache_block_info->getTag(),module_index,s,v);
+VERI_LOG("insert blocktag :%x from module:%d set:%d way:%d",cache_block_info->getTag(),module_index,s,v);
+				cache_block_info->invalidate();
+				
 				insertCacheBlock(insert_addr,CacheState::MODIFIED,data_buf,0/* core id here*/, ShmemPerfModel::_USER_THREAD);
 			}
 			else

@@ -147,6 +147,9 @@ CacheSet::insert(CacheBlockInfo* cache_block_info, Byte* fill_buff, bool* evicti
    if (m_cache_block_info_array[index]->isValid())
    {
       *eviction = true;
+
+	VERI_LOG("evict tag:%x addr:%x",m_cache_block_info_array[index]->getTag(),m_cache_block_info_array[index]->getTag()<<6);
+
       // FIXME: This is a hack. I dont know if this is the best way to do
       evict_block_info->clone(m_cache_block_info_array[index]);
       if (evict_buff != NULL && m_blocks != NULL)
@@ -223,10 +226,38 @@ CacheSet::insertFlex(CacheBlockInfo* cache_block_info, Byte* fill_buff, bool* ev
    else
    {
       *eviction = false;
+		
    }
-
+		VERI_LOG("BEFORE REPLACEMENT");
+		for(UInt32 i=0;i<8;i++)
+		{
+			if(m_cache_block_info_array[i]->isValid())
+			{
+				VERI_LOG("i:%d tag:%x ",i,m_cache_block_info_array[i]->getTag());
+			}
+			else
+			{
+				VERI_LOG("i:%d tag:NULL ",i);
+			}
+		}
+VERI_LOG("REPLACEMENT:%d  tag:%x addr:%x ",index,m_cache_block_info_array[index]->getTag(),m_cache_block_info_array[index]->getTag()<<6);
    // FIXME: This is a hack. I dont know if this is the best way to do
    m_cache_block_info_array[index]->clone(cache_block_info);
+
+	if(*eviction==true)
+	{
+			VERI_LOG("AFTER REPLACEMENT");	
+		for(UInt32 i=0;i<8;i++)
+		{
+			if(m_cache_block_info_array[i]->isValid())
+			{
+				VERI_LOG("i:%d tag:%x ",i,m_cache_block_info_array[i]->getTag());
+			}
+			else
+			{	VERI_LOG("i:%d tag:NULL ",i);
+			}
+		}
+	}
 
    if (fill_buff != NULL && m_blocks != NULL)
       memcpy(&m_blocks[index * m_blocksize], (void*) fill_buff, m_blocksize);
