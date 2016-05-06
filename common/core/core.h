@@ -20,7 +20,7 @@ class CheetahManager;
 #include "bbv_count.h"
 #include "cpuid.h"
 #include "hit_where.h"
-#include "dyn_reconf.h"
+//#include "dyn_reconf.h"
 
 struct MemoryResult {
    HitWhere::where_t hit_where;
@@ -81,7 +81,7 @@ class Core
 
       static const char * CoreStateString(State state);
 
-      Core(SInt32 id,Dyn_reconf *reconfig);
+      Core(SInt32 id/*,Dyn_reconf *reconfig*/);
       ~Core();
 
       // Query and update branch predictor, return true on mispredict
@@ -174,6 +174,8 @@ class Core
       UInt64 m_spin_instructions;
       SubsecondTime m_spin_elapsed_time;
 
+      SubsecondTime t_initial,t_final;	
+
    protected:
       // Optimized version of countInstruction has direct access to m_instructions and m_instructions_callback
       friend class InstructionModeling;
@@ -190,7 +192,7 @@ class Core
 //------------PRAK
 	FILE *fptr;
 	UInt64 p_count;
-	Dyn_reconf *reconfigurator;
+//	Dyn_reconf *reconfigurator;
 //	char filename[20];
         // sprintf(filename, "app_%u.log", core_id);
 //--------------

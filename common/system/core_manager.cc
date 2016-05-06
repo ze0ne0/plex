@@ -24,7 +24,8 @@ CoreManager::CoreManager()
    LOG_PRINT("Starting CoreManager Constructor.");
 
 
-	reconfigurator= new Dyn_reconf();
+//	reconfigurator= new Dyn_reconf();
+/*
 	if(reconfigurator==NULL)
 	{
 		PRAK_LOG("Can't initialize dyn_reconf\n");
@@ -33,10 +34,10 @@ CoreManager::CoreManager()
 	{
 		PRAK_LOG("Initialized dyn_reconf\n");		
 	}
-
+*/
    for (UInt32 i = 0; i < Config::getSingleton()->getTotalCores(); i++)
    {
-      m_cores.push_back(new Core(i,reconfigurator));
+      m_cores.push_back(new Core(i/*,reconfigurator*/));
 	PRAK_LOG("STARTING CORE %d \n",i);
    }
 
@@ -48,11 +49,11 @@ CoreManager::CoreManager()
 
 CoreManager::~CoreManager()
 {
-	PRAK_LOG("Count:%lld ",reconfigurator->getInstructionCount());
-	if(reconfigurator)		
-	{	PRAK_LOG("Deleting reconfigurator");
-		delete reconfigurator;
-	}
+//	PRAK_LOG("Count:%lld ",reconfigurator->getInstructionCount());
+//	if(reconfigurator)		
+//	{	PRAK_LOG("Deleting reconfigurator");
+//		delete reconfigurator;
+//	}
 
    for (std::vector<Core *>::iterator i = m_cores.begin(); i != m_cores.end(); i++)
       delete *i;

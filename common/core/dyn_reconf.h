@@ -19,24 +19,13 @@ public:
 		 RE_CHANGE
 	      	};
 
-		Dyn_reconf();
+		Dyn_reconf(CacheCntlr *c,ShmemPerfModel* s);
 		~Dyn_reconf();
 		void incrementCount();
 		void processAddress(IntPtr );
-		UInt64 getInstructionCount();
-		void setCache(CacheCntlr *c)
-		{
-			l2_cache=c;
-		}
+		void setInitTime();
 
-		void setShMemPerfModel(ShmemPerfModel* model)
-		{
-			m_shmem_perf_model=model;
-		}
-		ShmemPerfModel* getShMemPerfModel()
-		{
-			return m_shmem_perf_model;
-		}
+		UInt64 getInstructionCount();
 
 		Status getState();
 	private:

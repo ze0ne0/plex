@@ -193,6 +193,15 @@ CacheCntlr::CacheCntlr(MemComponent::component_t mem_component,
 
       m_master->m_prefetcher = Prefetcher::createPrefetcher(cache_params.prefetcher, cache_params.configName, m_core_id, m_shared_cores);
 
+    if(m_mem_component==MemComponent::L2_CACHE)
+    {
+	m_master->reconf=new Dyn_reconf(this,m_shmem_perf_model);
+    }
+    else
+    {
+	m_master->reconf=NULL;
+    }
+
       if (Sim()->getCfg()->getBoolDefault("perf_model/" + cache_params.configName + "/atd/enabled", false))
       {
          m_master->createATDs(name,
@@ -814,10 +823,15 @@ CacheCntlr::processShmemReqFromPrevCache(CacheCntlr* requester, Core::mem_op_t m
    bool have_write_lock_internal = true;
    #endif
 
+   m_master->reconf->incrementCount();
+
    bool cache_hit = operationPermissibleinFlexCache(address, mem_op_type,isShared(m_core_id),true), sibling_hit = false, prefetch_hit = false;
+
+	//m_master->m_slab_cntlr->incrementStats(cache_hit);
 
 	if(cache_hit)
 	{
+		
 		VERI_LOG("hit in mem=%s for addr=(0x%x) isprefetch:%d",MemComponentString(m_mem_component),address,isPrefetch);
 	}
 	else
@@ -1032,6 +1046,8 @@ CacheCntlr::processShmemReqFromPrevCache(CacheCntlr* requester, Core::mem_op_t m
 
                Byte data_buf[getCacheBlockSize()];
                SubsecondTime latency;
+
+		//m_master->m_slab_cntlr->incrementDramAccess();
 
                // Do the DRAM access and increment local time
                boost::tie<HitWhere::where_t, SubsecondTime>(hit_where, latency) = accessDRAM(Core::READ, address, isPrefetch != Prefetch::NONE, data_buf);
@@ -2300,9 +2316,14 @@ CacheCntlr:: reconfigure()
 	PRAK_LOG("RECONFIGURING CACHE");
 	VERI_LOG("RECONFIGURING CACHE");
 	for(int x=0; x< p_num_modules;x++)
-	{	max=0;
+	{	
+//-------------------------------------------------------------
+		max=0;
 		min=m_associativity-1;
 		bool didChangeHappen=false;
+		bool tx=false;
+//-------------------------------------------------------------
+
 		//---------------------------------------------------------------------	
 		for(UInt32 v=W_min;v< m_associativity; v++)
 		{
@@ -2333,8 +2354,8 @@ CacheCntlr:: reconfigure()
 					if(L2Hits[x][v] < ALPHA )
 					{
 						isSubWayOn[x][v]=false;
-						VERI_LOG("turned off mod:%d way :%d  max:%d min:%d",x,v,max,min);
-						didChangeHappen=true;
+						//VERI_LOG("turned off mod:%d way :%d  max:%d min:%d",x,v,max,min);
+						didChangeHappen=true;tx=true;
 						//block_transfer(x,v,isSubWayOn[x]);
 						if(max < v) 
 							max=v;
@@ -2348,18 +2369,23 @@ CacheCntlr:: reconfigure()
 					}
 				}
 			}
-//			VERI_LOG("max:%d min:%d ",max,min);			
+						
 		}
 		//---------------------------------------------------------------------
-		for(UInt32 v=0 ;v < m_associativity; v++)
+		//for(UInt32 v=0 ;v < m_associativity; v++)
+		//{
+		//	VERI_LOG("mod:%d max:%d min:%d way:%d isubway:%d",x,max,min,v,isSubWayOn[x][v]);			
+		//	//PRAK_LOG("mod:%d max:%d min:%d way:%d isubway:%d",x,max,min,v,isSubWayOn[x][v]);			
+		//}
+		if(didChangeHappen==true && tx==true)
 		{
-			VERI_LOG("mod:%d max:%d min:%d way:%d isubway:%d",x,max,min,v,isSubWayOn[x][v]);			
-			PRAK_LOG("mod:%d max:%d min:%d way:%d isubway:%d",x,max,min,v,isSubWayOn[x][v]);			
-		}
-		if(didChangeHappen==true)
-		{	
+			STAT_LOG("OFF-MOD:%d max:%d min:%d ",x,max,min);
 			block_transfer(x,max,min,isSubWayOn[x]);	
-		}		
+		}
+		else if(didChangeHappen==true && tx==false)	
+		{
+			STAT_LOG("ON/NO CHNAGE MOD:%d max:%d min:%d ",x,max,min);
+		}	
 	}
 	
 }
@@ -2377,8 +2403,9 @@ CacheCntlr::block_transfer(UInt32 module_index,UInt32 max_way,UInt32 min_way,boo
 //	PRAK_LOG("BLOCK TRANS MOD:%d",module_index);
 //	VERI_LOG("BLOCK TRANS MOD:%d",module_index);
 
-PRAK_LOG("block transfer called for mod=%d min_way=%d max_way=%d",module_index,min_way,max_way);
+//PRAK_LOG("block transfer called for mod=%d min_way=%d max_way=%d",module_index,min_way,max_way);
 VERI_LOG("block transfer called for mod=%d min_way=%d max_way=%d",module_index,min_way,max_way);
+STAT_LOG("block transfer called for mod=%d min_way=%d max_way=%d",module_index,min_way,max_way);
 	for(UInt32 s=set_si;s<set_fi;s++)
 	{
 		//check if leader set
@@ -2397,7 +2424,7 @@ VERI_LOG("block transfer called for mod=%d min_way=%d max_way=%d",module_index,m
 			{
 				//insert this block
 				insert_addr=m_master->m_cache->tagToAddress(cache_block_info->getTag());
-VERI_LOG("insert blocktag :%x from module:%d set:%d way:%d",cache_block_info->getTag(),module_index,s,v);
+//VERI_LOG("insert blocktag :%x from module:%d set:%d way:%d",cache_block_info->getTag(),module_index,s,v);
 				cache_block_info->invalidate();
 				
 				insertCacheBlock(insert_addr,CacheState::MODIFIED,data_buf,0/* core id here*/, ShmemPerfModel::_USER_THREAD);

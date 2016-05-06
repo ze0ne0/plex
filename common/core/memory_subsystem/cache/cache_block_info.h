@@ -4,6 +4,7 @@
 #include "fixed_types.h"
 #include "cache_state.h"
 #include "cache_base.h"
+#include "dyn_reconf.h"
 
 class CacheBlockInfo
 {
@@ -68,6 +69,7 @@ class CacheCntlr
       virtual bool isInLowerLevelCache(CacheBlockInfo *block_info) { return false; }
       virtual void incrementQBSLookupCost() {}
 virtual void reconfigure()=0;
+virtual Dyn_reconf* getDynReconf()=0;
 };
 
 #endif /* __CACHE_BLOCK_INFO_H__ */

@@ -64,7 +64,7 @@ Lock Core::m_global_core_lock;
 UInt64 Core::g_instructions_hpi_global = 0;
 UInt64 Core::g_instructions_hpi_global_callback = 0;
 
-Core::Core(SInt32 id,Dyn_reconf *reconfig)
+Core::Core(SInt32 id/*,Dyn_reconf *reconfig*/)
    : m_core_id(id)
    , m_dvfs_domain(Sim()->getDvfsManager()->getCoreDomain(id))
    , m_thread(NULL)
@@ -118,14 +118,14 @@ Core::Core(SInt32 id,Dyn_reconf *reconfig)
 
    m_performance_model = PerformanceModel::create(this);
 
-	reconfigurator=reconfig;
-	if(m_core_id==0)
-	{
-		PRAK_LOG("CALLING GETCACHE");
-		reconfigurator->setCache(m_memory_manager->getCacheCntlrAt(0,MemComponent::L2_CACHE));
-		reconfigurator->setShMemPerfModel(m_shmem_perf_model);
-		PRAK_LOG("DONE CALLING GETCACHE");
-	}
+//	reconfigurator=reconfig;
+//	if(m_core_id==0)
+//	{
+//		PRAK_LOG("CALLING GETCACHE");
+//		reconfigurator->setCache(m_memory_manager->getCacheCntlrAt(0,MemComponent::L2_CACHE));
+//		reconfigurator->setShMemPerfModel(m_shmem_perf_model);
+//		PRAK_LOG("DONE CALLING GETCACHE");
+//	}
 
 	PRAK_LOG("Core construtor ends here");
 }
@@ -135,8 +135,13 @@ Core::~Core()
 //-------------PRAK
 	fclose(getFileptr());
 	PRAK_LOG("core:%d instr_count:%lld",m_core_id,p_count);
-	
-	
+	STAT_LOG("core:%d instr_count:%lld",m_core_id,p_count);
+	if(m_core_id==0)
+	{
+		t_final=m_shmem_perf_model->getElapsedTime(ShmemPerfModel::_USER_THREAD);
+		STAT_LOG("core:%d t_init:%lld t_final:%lld  total_time:%lld ",m_core_id,t_initial.getNS(),t_final.getNS(),t_final.getNS()-t_initial.getNS());
+	}
+
 //-------------------------------------
 
 
@@ -269,7 +274,12 @@ Core::readInstructionMemory(IntPtr address, UInt32 instruction_size)
 
 //------------PRAK------------
 	p_count+=1;
-	reconfigurator->incrementCount();
+	if(p_count==1 && m_core_id==0)
+	{
+		t_initial=m_shmem_perf_model->getElapsedTime(ShmemPerfModel::_USER_THREAD);
+		m_memory_manager->getCacheCntlrAt(m_core_id, MemComponent::L2_CACHE)->getDynReconf()->setInitTime();
+	}
+//	reconfigurator->incrementCount();
 	//fprintf(fptr,"0x%x:%lld\n",address,p_count);
 
 //------------------------------

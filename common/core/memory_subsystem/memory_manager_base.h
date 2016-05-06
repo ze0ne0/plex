@@ -2,6 +2,7 @@
 #define __MEMORY_MANAGER_BASE_H__
 
 #include "core.h"
+#include "cache_cntlr.h"
 #include "network.h"
 #include "mem_component.h"
 #include "performance_model.h"

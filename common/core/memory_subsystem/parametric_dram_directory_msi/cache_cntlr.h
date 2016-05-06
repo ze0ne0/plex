@@ -2,6 +2,7 @@
 
 #include "core.h"
 #include "cache.h"
+#include "dyn_reconf.h"
 #include "prefetcher.h"
 #include "shared_cache_block_info.h"
 #include "address_home_lookup.h"
@@ -153,6 +154,7 @@ namespace ParametricDramDirectoryMSI
       private:
          Cache* m_cache;
          Lock m_cache_lock;
+	 Dyn_reconf *reconf;
          Lock m_smt_lock; //< Only used in L1 cache, to protect against concurrent access from sibling SMT threads
          CacheCntlrList m_prev_cache_cntlrs;
          Prefetcher* m_prefetcher;
@@ -419,6 +421,10 @@ SharedCacheBlockInfo*
 
 //------------------PRAK-LOG
 	virtual void reconfigure();
+	virtual Dyn_reconf* getDynReconf()
+	{
+		return m_master->reconf;
+	}
 	void block_transfer(UInt32 module_index,UInt32 max_way,UInt32 min_way,bool *isSubWay);
 //----------------------------------------
 
