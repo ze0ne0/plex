@@ -1,5 +1,6 @@
 #pragma once
 
+#include "prak_stats.h"
 #include "core.h"
 #include "cache.h"
 #include "dyn_reconf.h"
@@ -155,6 +156,10 @@ namespace ParametricDramDirectoryMSI
          Cache* m_cache;
          Lock m_cache_lock;
 	 Dyn_reconf *reconf;
+	 PrakStats *prak_stat;
+
+	 Lock lock_flex;	
+
          Lock m_smt_lock; //< Only used in L1 cache, to protect against concurrent access from sibling SMT threads
          CacheCntlrList m_prev_cache_cntlrs;
          Prefetcher* m_prefetcher;
@@ -223,6 +228,10 @@ namespace ParametricDramDirectoryMSI
          bool m_l1_mshr;
 //---------------PRAK-LOG
 	UInt32 print_count;
+	
+	UInt64 m_blk_tx,m_last_blk_tx;
+	UInt64 m_blk_tx,m_last_blk_tx;
+
 //--------------------------
          struct {
            UInt64 loads, stores;
@@ -380,8 +389,17 @@ SharedCacheBlockInfo*
 
          virtual ~CacheCntlr();
 
+	 virtual PrakStats * getPrakStat()
+	{
+		return m_master->prak_stat;
+	}
+
          Cache* getCache() { return m_master->m_cache; }
          Lock& getLock() { return m_master->m_cache_lock; }
+
+         Lock& getFlexLock() { return m_master->lock_flex; }
+
+	 
 
          void setPrevCacheCntlrs(CacheCntlrList& prev_cache_cntlrs);
          void setNextCacheCntlr(CacheCntlr* next_cache_cntlr) { m_next_cache_cntlr = next_cache_cntlr; }

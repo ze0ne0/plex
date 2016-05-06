@@ -196,10 +196,12 @@ CacheCntlr::CacheCntlr(MemComponent::component_t mem_component,
     if(m_mem_component==MemComponent::L2_CACHE)
     {
 	m_master->reconf=new Dyn_reconf(this,m_shmem_perf_model);
+	m_master->prak_stat= new PrakStats(this);
     }
     else
     {
 	m_master->reconf=NULL;
+	m_master->prak_stat=NULL;
     }
 
       if (Sim()->getCfg()->getBoolDefault("perf_model/" + cache_params.configName + "/atd/enabled", false))
@@ -822,8 +824,10 @@ CacheCntlr::processShmemReqFromPrevCache(CacheCntlr* requester, Core::mem_op_t m
    #else
    bool have_write_lock_internal = true;
    #endif
-
-   m_master->reconf->incrementCount();
+   
+	getFlexLock().acquire();   
+	m_master->prak_stat->incrementCount();
+	getFlexLock().release();
 
    bool cache_hit = operationPermissibleinFlexCache(address, mem_op_type,isShared(m_core_id),true), sibling_hit = false, prefetch_hit = false;
 
@@ -2313,8 +2317,9 @@ CacheCntlr:: reconfigure()
 
 	UInt32 max=0,min=m_associativity-1;
 	
-	PRAK_LOG("RECONFIGURING CACHE");
-	VERI_LOG("RECONFIGURING CACHE");
+	PRAK_LOG("In reconfiguration earlier slab:%d t_now:%lld t_prev:%lld",active_slabs,t_now.getNS(),t_prev.getNS());
+	VERI_LOG("In reconfiguration earlier slab:%d t_now:%lld t_prev:%lld",active_slabs,t_now.getNS(),t_prev.getNS());
+
 	for(int x=0; x< p_num_modules;x++)
 	{	
 //-------------------------------------------------------------
@@ -2380,13 +2385,27 @@ CacheCntlr:: reconfigure()
 		if(didChangeHappen==true && tx==true)
 		{
 			STAT_LOG("OFF-MOD:%d max:%d min:%d ",x,max,min);
-			block_transfer(x,max,min,isSubWayOn[x]);	
+			m_blk_tx=block_transfer(x,max,min,isSubWayOn[x]);	
 		}
 		else if(didChangeHappen==true && tx==false)	
 		{
 			STAT_LOG("ON/NO CHNAGE MOD:%d max:%d min:%d ",x,max,min);
 		}	
 	}
+
+	if(m_blk_tx>0)
+	{
+		PRAK_LOG("BLOCK TX:%lld",m_blk_tx);
+		VERI_LOG("BLOCK TX:%lld",m_blk_tx);
+	}
+	STAT_LOG("%d;%lld;%lld;%lld;%lld;%d;%d",num_reconf,t_now.getNS()-t_prev.getNS(),hits,mem_access-hits,dram_access,m_last_tx,active_slabs);
+
+	m_last_blk_tx=m_blk_tx;
+	m_blk_tx=0;
+
+	reset_stats();
+	num_reconf+=1;
+	t_prev=t_now;
 	
 }
 

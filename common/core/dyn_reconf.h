@@ -12,12 +12,7 @@ class Dyn_reconf
 {
 	
 public:
-		enum Status
-	      	{
-		 STABLE = 0,
-		 FIRST_CHANGE,
-		 RE_CHANGE
-	      	};
+	
 
 		Dyn_reconf(CacheCntlr *c,ShmemPerfModel* s);
 		~Dyn_reconf();
@@ -27,7 +22,6 @@ public:
 
 		UInt64 getInstructionCount();
 
-		Status getState();
 	private:
 		UInt64 p_instruction_count;
 		UInt64 p_base_count;

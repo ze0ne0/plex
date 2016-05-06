@@ -9,7 +9,6 @@ Dyn_reconf::Dyn_reconf(CacheCntlr *c,ShmemPerfModel* s)
 	p_last_base_count=0;
 	p_base_addr=0;
 	p_last_base_addr=0;
-	state=STABLE;
 //	l2_cache=NULL;
 	l2_cache=c;
 	m_shmem_perf_model=s;
@@ -28,23 +27,24 @@ void Dyn_reconf:: processAddress(IntPtr address)
 void Dyn_reconf:: setInitTime()
 {
 	t_prev =m_shmem_perf_model->getElapsedTime(ShmemPerfModel::_USER_THREAD);
+	l2_cache->getPrakStat()->setInitTime();
 	PRAK_LOG("Init Time=%lld",t_prev.getNS());
 } 
 
 
 void Dyn_reconf:: incrementCount()
 {
-
 	p_instruction_count+=1;
 	if(p_instruction_count %20000 ==0)
-	{
-	        t_now =m_shmem_perf_model->getElapsedTime(ShmemPerfModel::_USER_THREAD);
-		PRAK_LOG("T_PREV:%llu  t:now:%llu",t_prev.getNS(),t_now.getNS());
-		PRAK_LOG("RECONFIGURATION INTERVAL REACHED");
-		l2_cache->reconfigure();
-		PRAK_LOG("RECONFIGURATION FINISHED");
+	{	
+	      //  t_now =m_shmem_perf_model->getElapsedTime(ShmemPerfModel::_USER_THREAD);
+	      //	PRAK_LOG("T_PREV:%llu  t:now:%llu",t_prev.getNS(),t_now.getNS());
+	    	PRAK_LOG("DYRECONFIGURATION INTERVAL REACHED");
+		l2_cache->getPrakStat()->reconfigure();
+		PRAK_LOG("DYRECONFIGURATION FINISHED");
+		p_instruction_count=0;
 	}
-	t_prev=t_now;
+	//t_prev=t_now;
 }
 
 
@@ -53,8 +53,4 @@ UInt64 Dyn_reconf:: getInstructionCount()
 	return p_instruction_count;
 }
 
-Dyn_reconf::Status Dyn_reconf:: getState()
-{
-	return state;
-}
 
