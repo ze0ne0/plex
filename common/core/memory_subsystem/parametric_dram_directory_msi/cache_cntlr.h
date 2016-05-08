@@ -1,9 +1,8 @@
 #pragma once
 
-#include "prak_stats.h"
+
 #include "core.h"
 #include "cache.h"
-#include "dyn_reconf.h"
 #include "prefetcher.h"
 #include "shared_cache_block_info.h"
 #include "address_home_lookup.h"
@@ -18,6 +17,7 @@
 #include "req_queue_list_template.h"
 #include "stats.h"
 #include "subsecond_time.h"
+#include "prak_stats.h"
 
 #include "boost/tuple/tuple.hpp"
 
@@ -155,7 +155,7 @@ namespace ParametricDramDirectoryMSI
       private:
          Cache* m_cache;
          Lock m_cache_lock;
-	 Dyn_reconf *reconf;
+//	 Dyn_reconf *reconf;
 	 PrakStats *prak_stat;
 
 	 Lock lock_flex;	
@@ -229,8 +229,8 @@ namespace ParametricDramDirectoryMSI
 //---------------PRAK-LOG
 	UInt32 print_count;
 	
-	UInt64 m_blk_tx,m_last_blk_tx;
-	UInt64 m_blk_tx,m_last_blk_tx;
+//	UInt64 m_blk_tx,m_last_blk_tx;
+//	UInt64 m_blk_tx,m_last_blk_tx;
 
 //--------------------------
          struct {
@@ -394,7 +394,7 @@ SharedCacheBlockInfo*
 		return m_master->prak_stat;
 	}
 
-         Cache* getCache() { return m_master->m_cache; }
+          Cache* getCache() { return m_master->m_cache; }
          Lock& getLock() { return m_master->m_cache_lock; }
 
          Lock& getFlexLock() { return m_master->lock_flex; }
@@ -439,11 +439,11 @@ SharedCacheBlockInfo*
 
 //------------------PRAK-LOG
 	virtual void reconfigure();
-	virtual Dyn_reconf* getDynReconf()
-	{
-		return m_master->reconf;
-	}
-	void block_transfer(UInt32 module_index,UInt32 max_way,UInt32 min_way,bool *isSubWay);
+//	virtual Dyn_reconf* getDynReconf()
+//	{
+//		return m_master->reconf;
+//	}
+	virtual int block_transfer(UInt32 module_index,UInt32 max_way,UInt32 min_way,bool *isSubWay);
 //----------------------------------------
 
 
@@ -457,6 +457,7 @@ SharedCacheBlockInfo*
 
          friend class CacheCntlrList;
          friend class MemoryManager;
+//	 friend class PrakStats;
    };
 
 }

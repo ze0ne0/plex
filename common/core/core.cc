@@ -16,7 +16,7 @@
 #include "stats.h"
 #include "topology_info.h"
 #include "cheetah_manager.h"
-#include "dyn_reconf.h"
+//#include "dyn_reconf.h"
 #include <cstring>
 
 #if 0
@@ -277,7 +277,7 @@ Core::readInstructionMemory(IntPtr address, UInt32 instruction_size)
 	if(p_count==1 && m_core_id==0)
 	{
 		t_initial=m_shmem_perf_model->getElapsedTime(ShmemPerfModel::_USER_THREAD);
-		m_memory_manager->getCacheCntlrAt(m_core_id, MemComponent::L2_CACHE)->getDynReconf()->setInitTime();
+		m_memory_manager->getCacheCntlrAt(m_core_id, MemComponent::L2_CACHE)->getPrakStat()->setInitTime();
 	}
 //	reconfigurator->incrementCount();
 	//fprintf(fptr,"0x%x:%lld\n",address,p_count);

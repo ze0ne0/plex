@@ -1,11 +1,15 @@
 #ifndef __CACHE_BLOCK_INFO_H__
 #define __CACHE_BLOCK_INFO_H__
 
+class PrakStats;
+
 #include "fixed_types.h"
 #include "cache_state.h"
 #include "cache_base.h"
-#include "dyn_reconf.h"
-#include "prak_stats.h"
+
+
+//#include "dyn_reconf.h"
+//#include "prak_stats.h"
 
 class CacheBlockInfo
 {
@@ -69,9 +73,11 @@ class CacheCntlr
    public:
       virtual bool isInLowerLevelCache(CacheBlockInfo *block_info) { return false; }
       virtual void incrementQBSLookupCost() {}
-virtual void reconfigure()=0;
-virtual PrakStats * getPrakStat()=0;
-virtual Dyn_reconf* getDynReconf()=0;
+      virtual void reconfigure()=0;
+      virtual PrakStats * getPrakStat()=0;
+virtual	int block_transfer(UInt32 module_index,UInt32 max_way,UInt32 min_way,bool *isSubWay)=0;
+//	virtual Cache* getCache()=0;
+//virtual Dyn_reconf* getDynReconf()=0;
 };
 
 #endif /* __CACHE_BLOCK_INFO_H__ */

@@ -116,6 +116,11 @@ CacheMasterCntlr::accessATDs(Core::mem_op_t mem_op_type, bool hit, IntPtr addres
 CacheMasterCntlr::~CacheMasterCntlr()
 {
    delete m_cache;
+	if(prak_stat)
+	{
+		delete prak_stat;
+		prak_stat=NULL;
+	}
    for(std::vector<ATD*>::iterator it = m_atds.begin(); it != m_atds.end(); ++it)
    {
       delete *it;
@@ -195,12 +200,12 @@ CacheCntlr::CacheCntlr(MemComponent::component_t mem_component,
 
     if(m_mem_component==MemComponent::L2_CACHE)
     {
-	m_master->reconf=new Dyn_reconf(this,m_shmem_perf_model);
-	m_master->prak_stat= new PrakStats(this);
+	//m_master->reconf=new Dyn_reconf(this,m_shmem_perf_model);
+	m_master->prak_stat= new PrakStats(this,m_shmem_perf_model,m_master->m_cache);
     }
     else
     {
-	m_master->reconf=NULL;
+	//m_master->reconf=NULL;
 	m_master->prak_stat=NULL;
     }
 
@@ -831,7 +836,7 @@ CacheCntlr::processShmemReqFromPrevCache(CacheCntlr* requester, Core::mem_op_t m
 
    bool cache_hit = operationPermissibleinFlexCache(address, mem_op_type,isShared(m_core_id),true), sibling_hit = false, prefetch_hit = false;
 
-	//m_master->m_slab_cntlr->incrementStats(cache_hit);
+	m_master->prak_stat->incrementL2(cache_hit);
 
 	if(cache_hit)
 	{
@@ -1051,7 +1056,7 @@ CacheCntlr::processShmemReqFromPrevCache(CacheCntlr* requester, Core::mem_op_t m
                Byte data_buf[getCacheBlockSize()];
                SubsecondTime latency;
 
-		//m_master->m_slab_cntlr->incrementDramAccess();
+		m_master->prak_stat->incrementDram();
 
                // Do the DRAM access and increment local time
                boost::tie<HitWhere::where_t, SubsecondTime>(hit_where, latency) = accessDRAM(Core::READ, address, isPrefetch != Prefetch::NONE, data_buf);
@@ -2307,6 +2312,7 @@ CacheCntlr::updateUncoreStatistics(HitWhere::where_t hit_where, SubsecondTime no
 void
 CacheCntlr:: reconfigure()
 {
+/*
 	int p_num_modules=m_master->m_cache->getNumModules();
 	UInt32 m_associativity=m_master->m_cache->getAssoc();
 	UInt32 W_min=m_master->m_cache->getW_min();
@@ -2406,12 +2412,13 @@ CacheCntlr:: reconfigure()
 	reset_stats();
 	num_reconf+=1;
 	t_prev=t_now;
-	
+	*/
 }
 
-void
+int
 CacheCntlr::block_transfer(UInt32 module_index,UInt32 max_way,UInt32 min_way,bool *isSubWay)
 {
+	int count_block=0;
 	int p_module_size=m_master->m_cache->getModuleSize();
 	UInt32 set_si=(module_index*p_module_size);
 	UInt32 set_fi=(module_index+1)*p_module_size;
@@ -2445,7 +2452,7 @@ STAT_LOG("block transfer called for mod=%d min_way=%d max_way=%d",module_index,m
 				insert_addr=m_master->m_cache->tagToAddress(cache_block_info->getTag());
 //VERI_LOG("insert blocktag :%x from module:%d set:%d way:%d",cache_block_info->getTag(),module_index,s,v);
 				cache_block_info->invalidate();
-				
+				count_block++;
 				insertCacheBlock(insert_addr,CacheState::MODIFIED,data_buf,0/* core id here*/, ShmemPerfModel::_USER_THREAD);
 			}
 			else
@@ -2457,7 +2464,7 @@ STAT_LOG("block transfer called for mod=%d min_way=%d max_way=%d",module_index,m
 	}
 	
 	
-
+	return count_block;
 }
 
 //----------------------------------------------------------
