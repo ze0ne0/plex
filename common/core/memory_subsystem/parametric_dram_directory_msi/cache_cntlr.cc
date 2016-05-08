@@ -2431,7 +2431,7 @@ CacheCntlr::block_transfer(UInt32 module_index,UInt32 max_way,UInt32 min_way,boo
 
 //PRAK_LOG("block transfer called for mod=%d min_way=%d max_way=%d",module_index,min_way,max_way);
 VERI_LOG("block transfer called for mod=%d min_way=%d max_way=%d",module_index,min_way,max_way);
-STAT_LOG("block transfer called for mod=%d min_way=%d max_way=%d",module_index,min_way,max_way);
+//STAT_LOG("block transfer called for mod=%d min_way=%d max_way=%d",module_index,min_way,max_way);
 	for(UInt32 s=set_si;s<set_fi;s++)
 	{
 		//check if leader set

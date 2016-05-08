@@ -101,6 +101,26 @@ PrakStats:: reset_stats(UInt64 **L2Hits,int p_num_modules,UInt32 m_associativity
 }
 
 
+void
+PrakStats:: print_stats(UInt64 **L2Hits,int p_num_modules)
+{
+
+	for(int x=0; x< p_num_modules;x++)
+	{
+		PRAK_LOG("mod:%d w0:%lld w1:%lld w2:%lld w3:%lld w4:%lld w5:%lld w6:%lld w7:%lld",x,L2Hits[x][0],
+		L2Hits[x][1],
+		L2Hits[x][2],
+		L2Hits[x][3],
+		L2Hits[x][4],
+		L2Hits[x][5],
+		L2Hits[x][6],
+		L2Hits[x][7]
+		);
+			
+	}
+
+}
+
 void PrakStats:: incrementCount()
 {
 	p_instruction_count+=1;
@@ -134,6 +154,8 @@ PrakStats:: reconfigure()
 	t_now =m_shmem_perf_model->getElapsedTime(ShmemPerfModel::_USER_THREAD);
 	PRAK_LOG("In reconfiguration active ways:%d total_ways:%d t_now:%lld t_prev:%lld tot:%lld",active_ways,p_num_modules*m_associativity,t_now.getNS(),t_prev.getNS());
 	VERI_LOG("In reconfiguration active ways:%d total_ways:%d t_now:%lld t_prev:%lld tot:%lld",active_ways,p_num_modules*m_associativity,t_now.getNS(),t_prev.getNS());
+
+	print_stats(L2Hits,p_num_modules);
 
 	for(int x=0; x< p_num_modules;x++)
 	{	
@@ -218,7 +240,8 @@ PrakStats:: reconfigure()
 	m_last_blk_tx=m_blk_tx;
 	m_blk_tx=0;
 
-	reset_stats(L2Hits,p_num_modules,m_associativity);
+//	reset_stats(L2Hits,p_num_modules,m_associativity);
+
 	num_reconf+=1;
 	t_prev=t_now;
 }

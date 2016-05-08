@@ -44,5 +44,6 @@ class PrakStats
 		void reconfigure();
 		void reset_stats(UInt64 **L2Hits,int p_num_modules,UInt32 m_associativity);
 		int getActiveWays(bool **isSubWayOn,int p_num_modules,UInt32 m_associativity);
+		void print_stats(UInt64 **L2Hits,int p_num_modules);
 };
 #endif
